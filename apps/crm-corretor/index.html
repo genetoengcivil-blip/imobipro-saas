@@ -1,0 +1,3351 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>ImobiPro | CRM Híbrido</title>
+
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  
+  <style>
+    :root{
+      --bg0:#f8fafc;
+      --bg1:#ffffff;
+      --bg2:#f1f5f9;
+      --card:#ffffff;
+      --card2:#f8fafc;
+      --stroke:#e2e8f0;
+      --stroke2:#cbd5e1;
+
+      --text:#1e293b;
+      --muted:#64748b;
+
+      --primary:#2563eb;
+      --primary-light:#3b82f6;
+      --primary-dark:#1d4ed8;
+      --secondary:#0ea5e9;
+      --accent:#f97316;
+
+      --good:#10b981;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --info:#3b82f6;
+
+      --shadow: 0 10px 40px rgba(0,0,0,.08);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,.12);
+      --shadow-card: 0 4px 12px rgba(0,0,0,.05);
+
+      --radius: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --sbarW: 280px;
+
+      --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-light));
+      --gradient-secondary: linear-gradient(135deg, var(--secondary), #38bdf8);
+    }
+
+    *{box-sizing:border-box; margin:0; padding:0}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: var(--bg0);
+      line-height:1.6;
+      overflow:hidden;
+    }
+
+    /* ====== LAYOUT ====== */
+    .app{
+      display:grid;
+      grid-template-columns: var(--sbarW) 1fr;
+      height:100%;
+      width:100%;
+      position:relative;
+    }
+
+    /* ====== SIDEBAR ====== */
+    .sidebar{
+      background: var(--bg1);
+      border-right: 1px solid var(--stroke);
+      padding:24px 20px;
+      display:flex;
+      flex-direction:column;
+      box-shadow: var(--shadow-card);
+      z-index:10;
+    }
+    
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      padding:16px;
+      margin-bottom:24px;
+      border-radius:var(--radius-lg);
+      background: var(--gradient-primary);
+      color:white;
+      box-shadow: var(--shadow);
+    }
+    
+    .brand .mark{
+      width:48px; height:48px;
+      border-radius:14px;
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.2);
+      backdrop-filter: blur(10px);
+    }
+    
+    .brand .mark i{font-size:22px}
+    
+    .brand .title{
+      display:flex; flex-direction:column; line-height:1.2;
+    }
+    
+    .brand .title strong{
+      font-size:18px; 
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+    
+    .brand .title span{
+      font-size:13px; 
+      opacity:.9;
+      font-weight:500;
+    }
+
+    .nav{
+      flex:1;
+      display:flex; flex-direction:column;
+      gap:6px;
+      margin-bottom:20px;
+    }
+    
+    .nav button{
+      width:100%;
+      display:flex; align-items:center; gap:14px;
+      padding:14px 16px;
+      border-radius:var(--radius);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text);
+      cursor:pointer;
+      transition: all .2s ease;
+      font-weight:500;
+      text-align:left;
+      position:relative;
+    }
+    
+    .nav button:hover{
+      background: var(--card2);
+      border-color: var(--stroke);
+      transform: translateX(4px);
+    }
+    
+    .nav button.active{
+      background: var(--gradient-primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: var(--shadow);
+    }
+    
+    .nav button i{
+      width:20px;
+      font-size:16px;
+    }
+    
+    .nav button span{
+      flex:1;
+      font-weight:500;
+      letter-spacing:.2px;
+      font-size:14px;
+    }
+    
+    .nav button .badge{
+      background: rgba(255,255,255,.9);
+      color: var(--primary);
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+      min-width:24px;
+      text-align:center;
+    }
+    
+    .nav button.active .badge{
+      background: white;
+      color: var(--primary);
+    }
+
+    .sidebarFooter{
+      margin-top:auto;
+      padding-top:20px;
+      border-top: 1px solid var(--stroke);
+    }
+    
+    .planCard{
+      padding:18px;
+      border-radius:var(--radius-lg);
+      background: var(--gradient-primary);
+      color:white;
+      margin-bottom:16px;
+      box-shadow: var(--shadow);
+    }
+    
+    .planTop{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    
+    .planTop strong{font-size:14px; font-weight:600}
+    
+    .pill{
+      font-size:11px;
+      font-weight:700;
+      padding:4px 10px;
+      border-radius:999px;
+      background: white;
+      color: var(--primary);
+    }
+    
+    .planBar{
+      height:8px;
+      border-radius:999px;
+      background: rgba(255,255,255,.3);
+      overflow:hidden;
+      margin-bottom:8px;
+    }
+    
+    .planBar > div{
+      height:100%;
+      width:64%;
+      background: white;
+      border-radius:999px;
+      position:relative;
+      overflow:hidden;
+    }
+    
+    .planBar > div::after{
+      content:'';
+      position:absolute;
+      top:0; left:0; right:0; bottom:0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer{
+      0% {transform: translateX(-100%);}
+      100% {transform: translateX(100%);}
+    }
+    
+    .planMeta{
+      display:flex; justify-content:space-between;
+      font-size:12px;
+      opacity:.9;
+      font-weight:500;
+    }
+
+    .helpRow{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    }
+    
+    .helpRow a{
+      text-decoration:none;
+      padding:12px;
+      border-radius:var(--radius);
+      border:1px solid var(--stroke);
+      background: var(--card);
+      color: var(--text);
+      font-weight:600;
+      font-size:13px;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      transition:all .2s ease;
+    }
+    
+    .helpRow a:hover{
+      background: var(--gradient-primary);
+      color:white;
+      border-color:var(--primary);
+      transform:translateY(-2px);
+    }
+
+    /* ====== MAIN ====== */
+    .main{
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      background: var(--bg2);
+    }
+
+    /* TOPBAR */
+    .topbar{
+      height:80px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 28px;
+      background: var(--bg1);
+      border-bottom:1px solid var(--stroke);
+      box-shadow: var(--shadow-card);
+      z-index:5;
+    }
+    
+    .searchWrap{
+      display:flex; align-items:center; gap:16px;
+      flex:1;
+      max-width:600px;
+    }
+    
+    .search{
+      flex:1;
+      display:flex; align-items:center; gap:12px;
+      padding:12px 20px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      transition:all .2s ease;
+      min-width:300px;
+    }
+    
+    .search:focus-within{
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(37,99,235,.1);
+    }
+    
+    .search i{color:var(--muted)}
+    
+    .search input{
+      flex:1;
+      background:transparent;
+      border:none;
+      outline:none;
+      color:var(--text);
+      font-weight:500;
+      font-size:14px;
+    }
+    
+    .search input::placeholder{color:var(--muted)}
+    
+    .quick-action{
+      padding:12px 20px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: var(--gradient-primary);
+      color:white;
+      font-weight:600;
+      font-size:14px;
+      display:flex; align-items:center; gap:10px;
+      cursor:pointer;
+      transition:all .2s ease;
+      white-space:nowrap;
+    }
+    
+    .quick-action:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow);
+    }
+    
+    .rightTools{
+      display:flex; align-items:center; gap:16px;
+    }
+    
+    .notifications{
+      position:relative;
+      cursor:pointer;
+    }
+    
+    .notification-badge{
+      position:absolute;
+      top:-8px; right:-8px;
+      background:var(--bad);
+      color:white;
+      font-size:11px;
+      font-weight:700;
+      width:20px; height:20px;
+      border-radius:50%;
+      display:grid; place-items:center;
+    }
+    
+    /* Language Selector */
+    .langSelect{
+      display:flex; align-items:center; gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      cursor:pointer;
+      user-select:none;
+    }
+    .langSelect select{
+      background:transparent;
+      border:none;
+      outline:none;
+      color: var(--text);
+      font-weight:600;
+      cursor:pointer;
+    }
+    
+    .userBox{
+      display:flex; align-items:center; gap:12px;
+      padding:8px 16px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background:var(--bg1);
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    
+    .userBox:hover{
+      border-color:var(--primary);
+      box-shadow:var(--shadow-card);
+    }
+    
+    .avatar{
+      width:42px; height:42px;
+      border-radius:50%;
+      overflow:hidden;
+      border:3px solid var(--stroke);
+      background: var(--gradient-primary);
+      display:grid; place-items:center;
+      color:white;
+      font-weight:600;
+      font-size:16px;
+    }
+    
+    .userMeta{line-height:1.3}
+    
+    .userMeta strong{
+      font-size:14px;
+      font-weight:600;
+      display:block;
+    }
+    
+    .userMeta div{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:500;
+    }
+    
+    .siteBtn{
+      padding:12px 24px;
+      border-radius:var(--radius);
+      border:1px solid var(--primary);
+      background:white;
+      color:var(--primary);
+      font-weight:600;
+      cursor:pointer;
+      display:flex; align-items:center; gap:10px;
+      transition:all .2s ease;
+    }
+    
+    .siteBtn:hover{
+      background:var(--gradient-primary);
+      color:white;
+      transform:translateY(-2px);
+      box-shadow:var(--shadow);
+    }
+
+    /* CONTENT */
+    .content{
+      padding:28px;
+      overflow:auto;
+      height:calc(100% - 80px);
+    }
+
+    /* Cards / UI */
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:24px;
+      align-items:start;
+    }
+    
+    .panel{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin-bottom:24px;
+    }
+    
+    .panelHeader{
+      padding:20px 24px;
+      display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--stroke);
+      background:var(--bg1);
+    }
+    
+    .panelHeader .hTitle{
+      display:flex; flex-direction:column;
+      gap:6px;
+    }
+    
+    .panelHeader .hTitle strong{
+      font-size:18px;
+      font-weight:700;
+      color:var(--text);
+    }
+    
+    .panelHeader .hTitle span{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:500;
+    }
+    
+    .panelBody{padding:24px}
+
+    /* Metric cards */
+    .metrics{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:20px;
+      margin-bottom:24px;
+    }
+    
+    .mCard{
+      border-radius:var(--radius-xl);
+      border:1px solid var(--stroke);
+      background:var(--card);
+      padding:20px;
+      transition:all .3s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    
+    .mCard:hover{
+      transform:translateY(-4px);
+      border-color:var(--primary);
+      box-shadow:var(--shadow-lg);
+    }
+    
+    /* Glow effect corrigido para tema claro */
+    .mCard::before{
+      content:"";
+      position:absolute;
+      inset:-40px -60px auto -60px;
+      height:120px;
+      background: radial-gradient(closest-side, rgba(37, 99, 235, 0.1), transparent 70%);
+      filter: blur(8px);
+      opacity:.5;
+      pointer-events:none;
+    }
+    
+    .mTop{
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:16px;
+      position:relative;
+      z-index:2;
+    }
+    
+    .mTop .icon{
+      width:48px; height:48px;
+      border-radius:14px;
+      display:grid; place-items:center;
+      background:var(--gradient-primary);
+      color:white;
+      font-size:20px;
+    }
+    
+    .mVal{
+      font-size:32px;
+      font-weight:800;
+      color:var(--text);
+      margin-bottom:4px;
+      position:relative;
+      z-index:2;
+    }
+    
+    .mLbl{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:500;
+      margin-bottom:12px;
+      position:relative;
+      z-index:2;
+    }
+    
+    .mDelta{
+      display:flex; align-items:center; gap:8px;
+      font-size:13px;
+      font-weight:600;
+      position:relative;
+      z-index:2;
+    }
+    
+    .mDelta .up{color:var(--good)}
+    .mDelta .down{color:var(--bad)}
+    .mDelta .flat{color:var(--warn)}
+
+    /* Chart */
+    .chartWrap{
+      height:300px;
+      border-radius:var(--radius-xl);
+      border:1px solid var(--stroke);
+      background:var(--card);
+      padding:20px;
+      margin-bottom:24px;
+      position:relative;
+    }
+    
+    .chartContainer{
+      width:100%;
+      height:100%;
+      position:relative;
+    }
+
+    /* Chart hint */
+    .chartHint{
+      position:absolute;
+      right:14px; top:14px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      font-size:12px;
+      font-weight:600;
+      color: var(--text);
+      z-index:10;
+    }
+
+    /* Buttons */
+    .btn{
+      padding:12px 24px;
+      border-radius:var(--radius);
+      border:none;
+      font-weight:600;
+      font-size:14px;
+      cursor:pointer;
+      display:inline-flex; align-items:center; gap:10px;
+      transition:all .2s ease;
+    }
+    
+    .btn-primary{
+      background:var(--gradient-primary);
+      color:white;
+    }
+    
+    .btn-primary:hover{
+      transform:translateY(-2px);
+      box-shadow:var(--shadow);
+    }
+    
+    .btn-secondary{
+      background:white;
+      color:var(--primary);
+      border:1px solid var(--stroke);
+    }
+    
+    .btn-secondary:hover{
+      border-color:var(--primary);
+      background:var(--card2);
+    }
+    
+    .btn-success{
+      background:var(--good);
+      color:white;
+    }
+    
+    .btn-outline{
+      background:transparent;
+      color:var(--text);
+      border:1px solid var(--stroke);
+    }
+    
+    .btn-outline:hover{
+      border-color:var(--primary);
+      background:var(--card2);
+    }
+
+    /* Buttons Lite */
+    .btnLite{
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      color: var(--text);
+      font-weight:600;
+      cursor:pointer;
+      transition:.18s ease;
+      display:flex; align-items:center; gap:10px;
+      user-select:none;
+      font-size:14px;
+    }
+    .btnLite:hover{transform: translateY(-1px); border-color: var(--stroke2)}
+    .btnLite.btnGood{
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.10);
+    }
+    .btnLite.btnWarn{
+      border-color: rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.10);
+    }
+
+    /* Tables */
+    .tableContainer{
+      overflow-x:auto;
+      border-radius:var(--radius-lg);
+      border:1px solid var(--stroke);
+    }
+    
+    .table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+    }
+    
+    .table th{
+      text-align:left;
+      padding:16px 20px;
+      background:var(--bg2);
+      border-bottom:1px solid var(--stroke);
+      font-size:13px;
+      color:var(--muted);
+      font-weight:600;
+      white-space:nowrap;
+    }
+    
+    .table td{
+      padding:16px 20px;
+      border-bottom:1px solid var(--stroke);
+      font-size:14px;
+      font-weight:500;
+    }
+    
+    .table tr:hover td{
+      background:var(--card2);
+    }
+    
+    .table tr:last-child td{
+      border-bottom:none;
+    }
+
+    .status-badge{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:600;
+    }
+    
+    .status-new{
+      background:#dbeafe;
+      color:#1d4ed8;
+    }
+    
+    .status-active{
+      background:#dcfce7;
+      color:#166534;
+    }
+    
+    .status-pending{
+      background:#fef3c7;
+      color:#92400e;
+    }
+    
+    .status-sold{
+      background:#fee2e2;
+      color:#991b1b;
+    }
+
+    /* Tags */
+    .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: var(--bg2);
+      font-size:12px;
+      font-weight:600;
+    }
+    .tag.good{border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.10)}
+    .tag.warn{border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.10)}
+    .tag.bad{border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.10)}
+
+    /* Kanban */
+    .kanban{
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap:20px;
+      margin-bottom:24px;
+    }
+    
+    .kanban-column{
+      background:var(--card2);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius-xl);
+      overflow:hidden;
+      min-height:400px;
+    }
+    
+    .kanban-header{
+      padding:16px 20px;
+      border-bottom:1px solid var(--stroke);
+      background:var(--bg1);
+      display:flex; align-items:center; justify-content:space-between;
+      font-weight:600;
+    }
+    
+    .kanban-body{
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:300px;
+    }
+    
+    .kanban-card{
+      background:white;
+      border:1px solid var(--stroke);
+      border-radius:var(--radius-lg);
+      padding:16px;
+      cursor:move;
+      transition:all .2s ease;
+      box-shadow:var(--shadow-card);
+    }
+    
+    .kanban-card:hover{
+      transform:translateY(-2px);
+      border-color:var(--primary);
+      box-shadow:var(--shadow);
+    }
+    
+    .kanban-card-title{
+      font-weight:600;
+      margin-bottom:8px;
+      color:var(--text);
+    }
+    
+    .kanban-card-meta{
+      display:flex; gap:12px;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    /* Forms */
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:20px;
+    }
+    
+    .form-group{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    
+    .form-group label{
+      font-size:14px;
+      font-weight:600;
+      color:var(--text);
+    }
+    
+    .form-control{
+      padding:12px 16px;
+      border-radius:var(--radius);
+      border:1px solid var(--stroke);
+      background:white;
+      color:var(--text);
+      font-size:14px;
+      transition:all .2s ease;
+    }
+    
+    .form-control:focus{
+      outline:none;
+      border-color:var(--primary);
+      box-shadow:0 0 0 3px rgba(37,99,235,.1);
+    }
+    
+    .form-actions{
+      display:flex;
+      gap:12px;
+      justify-content:flex-end;
+      margin-top:24px;
+      padding-top:20px;
+      border-top:1px solid var(--stroke);
+    }
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.5);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:1000;
+      padding:20px;
+      backdrop-filter:blur(4px);
+    }
+    
+    .modal{
+      width:100%;
+      max-width:800px;
+      background:white;
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow-lg);
+      overflow:hidden;
+      animation:modalIn .3s ease;
+    }
+    
+    @keyframes modalIn{
+      from{opacity:0; transform:translateY(-20px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+    
+    .modal-header{
+      padding:20px 24px;
+      border-bottom:1px solid var(--stroke);
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--bg1);
+    }
+    
+    .modal-body{
+      padding:24px;
+      max-height:70vh;
+      overflow-y:auto;
+    }
+    
+    .modal-footer{
+      padding:20px 24px;
+      border-top:1px solid var(--stroke);
+      display:flex; justify-content:flex-end;
+      gap:12px;
+    }
+
+    /* Toast */
+    .toast-container{
+      position:fixed;
+      top:24px;
+      right:24px;
+      z-index:1001;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    
+    .toast{
+      padding:16px 20px;
+      border-radius:var(--radius);
+      background:white;
+      border-left:4px solid var(--primary);
+      box-shadow:var(--shadow-lg);
+      display:flex;
+      align-items:center;
+      gap:12px;
+      animation:toastIn .3s ease;
+      min-width:300px;
+    }
+    
+    @keyframes toastIn{
+      from{opacity:0; transform:translateX(100%)}
+      to{opacity:1; transform:translateX(0)}
+    }
+    
+    .toast-success{
+      border-left-color:var(--good);
+    }
+    
+    .toast-error{
+      border-left-color:var(--bad);
+    }
+    
+    .toast-warning{
+      border-left-color:var(--warn);
+    }
+
+    /* INBOX SYSTEM */
+    .inbox{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:12px;
+      min-height: 540px;
+    }
+    .inLeft, .inRight{
+      border-radius:18px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      overflow:hidden;
+    }
+    .inLeftHead{
+      padding:12px;
+      border-bottom:1px solid var(--stroke);
+      display:flex; align-items:center; justify-content:space-between;
+      background: var(--bg2);
+      font-weight:600;
+    }
+    .thread{
+      padding:12px;
+      border-bottom:1px solid var(--stroke);
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .thread:hover{background: var(--bg2)}
+    .thread.active{background: rgba(37, 99, 235, 0.08)}
+    .thread strong{display:block; font-weight:600}
+    .thread span{font-size:12px;color: var(--muted);font-weight:500}
+    .inRightHead{
+      padding:12px 14px;
+      border-bottom:1px solid var(--stroke);
+      background: var(--bg2);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .msgArea{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      height: 420px;
+      overflow:auto;
+    }
+    .bubble{
+      max-width: 72%;
+      padding:12px 12px;
+      border-radius: 16px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      box-shadow: var(--shadow-card);
+      font-weight:500;
+    }
+    .bubble.me{
+      margin-left:auto;
+      border-color: rgba(16, 185, 129, 0.25);
+      background: rgba(16, 185, 129, 0.10);
+    }
+    .composer{
+      padding:12px;
+      border-top:1px solid var(--stroke);
+      display:flex; gap:10px;
+      background: var(--bg2);
+    }
+    .composer input{
+      flex:1;
+      padding:12px 14px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      outline:none;
+      color: var(--text);
+      font-weight:500;
+    }
+
+    /* Site Preview */
+    .sitePreview{
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--stroke);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      background: var(--bg1);
+    }
+    .siteTop{
+      padding:16px 18px;
+      background: var(--gradient-primary);
+      border-bottom:1px solid var(--stroke);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .siteLogo{
+      display:flex; align-items:center; gap:12px;
+      font-weight:700;
+      letter-spacing:.2px;
+      color: white;
+    }
+    .siteLogo .dot{
+      width:14px; height:14px; border-radius:999px;
+      background: var(--secondary);
+      box-shadow: 0 0 0 6px rgba(56,189,248,.12);
+    }
+    .siteFrame{
+      padding:18px;
+    }
+    .siteHero{
+      border-radius:18px;
+      padding:18px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(14, 165, 233, 0.03));
+      position:relative;
+      overflow:hidden;
+    }
+    .siteHero h3{
+      margin:0 0 6px 0;
+      font-size:18px;
+      color: var(--text);
+    }
+    .siteHero p{
+      margin:0;
+      max-width: 680px;
+      color: var(--muted);
+      font-weight:500;
+      font-size:13px;
+    }
+    .siteCards{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:12px;
+    }
+    .pCard{
+      border-radius:16px;
+      border:1px solid var(--stroke);
+      background: var(--bg1);
+      overflow:hidden;
+      transition:.18s ease;
+      cursor:pointer;
+    }
+    .pCard:hover{transform: translateY(-1px); border-color: var(--stroke2)}
+    .pImg{
+      height:120px;
+      background: var(--gradient-secondary);
+      border-bottom:1px solid var(--stroke);
+      position:relative;
+      overflow:hidden;
+    }
+    .pImg img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+    .pBody{padding:10px}
+    .pBody strong{display:block; font-weight:600}
+    .pBody span{display:block; margin-top:4px; color: var(--muted); font-weight:500; font-size:12px}
+
+    /* Calendar View */
+    .calendar{
+      background: white;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--stroke);
+      overflow: hidden;
+    }
+    .calendar-header{
+      padding: 20px;
+      background: var(--gradient-primary);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .calendar-body{
+      padding: 20px;
+    }
+    .calendar-grid{
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .calendar-day-header{
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .calendar-day{
+      padding: 12px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .calendar-day:hover{
+      background: var(--primary-light);
+      color: white;
+    }
+    .calendar-day.today{
+      background: var(--primary);
+      color: white;
+    }
+    .calendar-day.event{
+      position: relative;
+    }
+    .calendar-day.event::after{
+      content: '';
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--good);
+    }
+    .calendar-events{
+      margin-top: 20px;
+    }
+    .event-item{
+      padding: 12px;
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Photo Upload */
+    .photo-upload-area{
+      border: 2px dashed var(--stroke);
+      border-radius: var(--radius);
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: var(--bg2);
+    }
+    .photo-upload-area:hover{
+      border-color: var(--primary);
+      background: rgba(37, 99, 235, 0.05);
+    }
+    .photo-upload-area i{
+      font-size: 48px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .photo-preview{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .photo-preview-item{
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      height: 120px;
+    }
+    .photo-preview-item img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .photo-preview-item button{
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Notifications Modal */
+    .notifications-modal .modal{
+      max-width: 400px;
+    }
+    .notification-item{
+      padding: 16px;
+      border-bottom: 1px solid var(--stroke);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .notification-item:last-child{
+      border-bottom: none;
+    }
+    .notification-icon{
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+    }
+    .notification-content{
+      flex: 1;
+    }
+    .notification-time{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Views system */
+    .view{display:none}
+    .view.active{display:block}
+
+    /* Responsive */
+    @media (max-width: 1200px){
+      .metrics{grid-template-columns:repeat(2, 1fr)}
+      .grid{grid-template-columns:1fr}
+      .siteCards{grid-template-columns:repeat(2, 1fr)}
+      .inbox{grid-template-columns:1fr}
+      .kanban{grid-template-columns: repeat(3, 1fr)}
+    }
+    
+    @media (max-width: 992px){
+      .app{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .sidebar-mobile-toggle{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:40px;
+        height:40px;
+        border-radius:var(--radius);
+        border:1px solid var(--stroke);
+        background:white;
+        cursor:pointer;
+      }
+      .search{min-width:auto}
+      .kanban{grid-template-columns:1fr}
+      .form-grid{grid-template-columns:1fr}
+      .siteCards{grid-template-columns:1fr}
+    }
+    
+    @media (max-width: 768px){
+      .metrics{grid-template-columns:1fr}
+      .topbar{padding:0 16px}
+      .content{padding:16px}
+      .rightTools{display:none}
+    }
+
+    /* Animations */
+    @keyframes fadeIn{
+      from{opacity:0}
+      to{opacity:1}
+    }
+    
+    .fade-in{
+      animation:fadeIn .3s ease;
+    }
+
+    /* Drag and drop */
+    .dragging{
+      opacity:.5;
+      transform:rotate(3deg);
+    }
+    
+    .drop-zone{
+      min-height:100px;
+      border:2px dashed var(--stroke);
+      border-radius:var(--radius);
+      display:grid; place-items:center;
+      color:var(--muted);
+      transition:all .2s ease;
+    }
+    
+    .drop-zone.drag-over{
+      border-color:var(--primary);
+      background:rgba(37,99,235,.05);
+    }
+
+    /* Progress bars */
+    .progress{
+      height:8px;
+      border-radius:999px;
+      background:var(--stroke);
+      overflow:hidden;
+    }
+    
+    .progress-bar{
+      height:100%;
+      background:var(--gradient-primary);
+      border-radius:999px;
+      transition:width .3s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="mark"><i class="fa-solid fa-building"></i></div>
+        <div class="title">
+          <strong>ImobiPro</strong>
+          <span data-i18n="crm_subtitle">CRM Híbrido</span>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <button class="active" data-view="dashboard">
+          <i class="fa-solid fa-chart-line"></i>
+          <span data-i18n="nav_dashboard">Dashboard</span>
+          <span class="badge" id="badgeDashboard">3</span>
+        </button>
+        <button data-view="properties">
+          <i class="fa-solid fa-house-chimney-window"></i>
+          <span data-i18n="nav_properties">Imóveis</span>
+          <span class="badge" id="badgeProperties">5</span>
+        </button>
+        <button data-view="leads">
+          <i class="fa-solid fa-users"></i>
+          <span data-i18n="nav_leads">Leads</span>
+          <span class="badge" id="badgeLeads">5</span>
+        </button>
+        <button data-view="messages">
+          <i class="fa-solid fa-inbox"></i>
+          <span data-i18n="nav_messages">Mensagens</span>
+          <span class="badge" id="badgeMessages">2</span>
+        </button>
+        <button data-view="site">
+          <i class="fa-solid fa-globe"></i>
+          <span data-i18n="nav_site">Site do Corretor</span>
+          <span class="badge"><i class="fa-solid fa-eye"></i></span>
+        </button>
+        <button data-view="profile">
+          <i class="fa-solid fa-user-gear"></i>
+          <span data-i18n="nav_profile">Perfil & Aparência</span>
+          <span class="badge">Pro</span>
+        </button>
+        <button data-view="calendar">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span data-i18n="nav_calendar">Agenda</span>
+          <span class="badge" id="badgeCalendar">2</span>
+        </button>
+        <button data-view="reports">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span data-i18n="nav_reports">Relatórios</span>
+        </button>
+      
+        <button data-view="billing">
+          <i class=\"fa-solid fa-credit-card\"></i>
+          <span>Assinatura</span>
+        </button>
+</nav>
+
+      <div class="sidebarFooter">
+        <div class="planCard">
+          <div class="planTop">
+            <strong data-i18n="plan_title">Plano Profissional</strong>
+            <span class="pill">ATIVO</span>
+          </div>
+          <div class="planBar"><div style="width: 64%"></div></div>
+          <div class="planMeta">
+            <span data-i18n="plan_usage">64% utilizado</span>
+            <span>Renova: 15/07</span>
+          </div>
+        </div>
+
+        <div class="helpRow">
+          <a href="#" onclick="showSupport()">
+            <i class="fa-brands fa-whatsapp"></i> <span data-i18n="help_support">Suporte</span>
+          </a>
+          <a href="#" onclick="showDocs()">
+            <i class="fa-regular fa-circle-question"></i> <span data-i18n="help_docs">Docs</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="searchWrap">
+          <button class="sidebar-mobile-toggle" onclick="toggleSidebar()" style="display:none">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          
+          <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="globalSearch" type="text" placeholder="Buscar imóveis, leads, clientes..." />
+          </div>
+          
+          <button class="quick-action" onclick="showNewPropertyModal()">
+            <i class="fa-solid fa-plus"></i>
+            <span data-i18n="chip_new_property">Novo Imóvel</span>
+          </button>
+        </div>
+
+        <div class="rightTools">
+          <div class="notifications" onclick="showNotificationsModal()">
+            <i class="fa-regular fa-bell" style="font-size:20px;color:var(--muted)"></i>
+            <span class="notification-badge" id="notificationCount">3</span>
+          </div>
+          
+          <!-- Language Selector -->
+          <div class="langSelect" title="Language">
+            <i class="fa-solid fa-language"></i>
+            <select id="lang">
+              <option value="pt">PT</option>
+              <option value="en">EN</option>
+              <option value="es">ES</option>
+            </select>
+          </div>
+          
+          <button class="siteBtn" onclick="switchView('site')">
+            <i class="fa-solid fa-up-right-from-square"></i>
+            <span data-i18n="btn_view_site">Ver Site</span>
+          </button>
+
+          <div class="userBox" onclick="switchView('profile')">
+            <div class="avatar" id="userAvatar">
+              <span id="avatarInitials">GN</span>
+              <img id="avatarImage" style="display:none;width:100%;height:100%;object-fit:cover" />
+            </div>
+            <div class="userMeta">
+              <strong id="userName">Geraldo Neves</strong>
+              <div id="userRole">CRECI: 00000 • Corretor</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT AREA -->
+      <div class="content" id="contentArea">
+        
+        <!-- DASHBOARD VIEW -->
+        <section class="view active" id="view-dashboard">
+          <div class="grid">
+            <!-- Main Metrics -->
+            <div class="panel">
+              <div class="panelHeader">
+                <div class="hTitle">
+                  <strong data-i18n="dash_title">Visão Geral do Negócio</strong>
+                  <span data-i18n="dash_sub">Performance e conversão em tempo real</span>
+                </div>
+                <div>
+                  <select class="form-control" style="width:200px" id="periodSelect">
+                    <option value="week">Esta Semana</option>
+                    <option value="month" selected>Este Mês</option>
+                    <option value="quarter">Este Trimestre</option>
+                    <option value="year">Este Ano</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="panelBody">
+                <!-- Metrics -->
+                <div class="metrics">
+                  <div class="mCard">
+                    <div class="mTop">
+                      <div>
+                        <div class="mVal" id="mLeadsToday">3</div>
+                        <div class="mLbl" data-i18n="m_leads_today">Leads hoje</div>
+                      </div>
+                      <div class="icon"><i class="fa-solid fa-bolt"></i></div>
+                    </div>
+                    <div class="mDelta"><span class="up">▲ 18%</span><span data-i18n="vs_yesterday">vs ontem</span></div>
+                  </div>
+
+                  <div class="mCard">
+                    <div class="mTop">
+                      <div>
+                        <div class="mVal" id="mLeadsMonth">5</div>
+                        <div class="mLbl" data-i18n="m_leads_month">Leads no mês</div>
+                      </div>
+                      <div class="icon"><i class="fa-solid fa-users"></i></div>
+                    </div>
+                    <div class="mDelta"><span class="up">▲ 9%</span><span data-i18n="vs_last_month">vs mês anterior</span></div>
+                  </div>
+
+                  <div class="mCard">
+                    <div class="mTop">
+                      <div>
+                        <div class="mVal" id="mSiteVisits">45</div>
+                        <div class="mLbl" data-i18n="m_site_visits">Visitas no site</div>
+                      </div>
+                      <div class="icon"><i class="fa-solid fa-globe"></i></div>
+                    </div>
+                    <div class="mDelta"><span class="up">▲ 21%</span><span data-i18n="this_week">esta semana</span></div>
+                  </div>
+
+                  <div class="mCard">
+                    <div class="mTop">
+                      <div>
+                        <div class="mVal" id="mConversion">6.2%</div>
+                        <div class="mLbl" data-i18n="m_conversion">Taxa de conversão</div>
+                      </div>
+                      <div class="icon"><i class="fa-solid fa-chart-simple"></i></div>
+                    </div>
+                    <div class="mDelta"><span class="flat">●</span><span data-i18n="stable">estável</span></div>
+                  </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="chartWrap">
+                  <div class="chartContainer">
+                    <div class="chartHint" data-i18n="chart_hint">Leads x Conversão (30 dias)</div>
+                    <canvas id="performanceChart"></canvas>
+                  </div>
+                </div>
+
+                <!-- Recent Leads Table -->
+                <div class="panel" style="margin-top:20px">
+                  <div class="panelHeader">
+                    <div class="hTitle">
+                      <strong data-i18n="recent_leads_title">Leads recentes</strong>
+                      <span data-i18n="recent_leads_sub">Acompanhe quem entrou hoje e priorize o atendimento</span>
+                    </div>
+                    <button class="btn btn-outline" onclick="switchView('leads')">
+                      <i class="fa-solid fa-arrow-right"></i> <span data-i18n="see_all">Ver tudo</span>
+                    </button>
+                  </div>
+                  <div class="panelBody">
+                    <div class="tableContainer">
+                      <table class="table" id="recentLeadsTable">
+                        <thead>
+                          <tr>
+                            <th data-i18n="th_name">Nome</th>
+                            <th data-i18n="th_interest">Interesse</th>
+                            <th data-i18n="th_source">Origem</th>
+                            <th data-i18n="th_status">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody id="recentLeadsTbody"></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Sidebar with Quick Actions -->
+            <div class="panel">
+              <div class="panelHeader">
+                <div class="hTitle">
+                  <strong data-i18n="quick_actions">Ações Rápidas</strong>
+                  <span data-i18n="quick_actions_sub">Atalhos inteligentes</span>
+                </div>
+                <button class="btnLite" onclick="showToast('Personalizar: em breve')">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="btn_customize">Personalizar</span>
+                </button>
+              </div>
+              <div class="panelBody">
+                <div style="display:flex; flex-direction:column; gap:12px">
+                  <button class="btnLite btnGood" onclick="showNewPropertyModal()">
+                    <i class="fa-solid fa-plus"></i> Cadastrar Imóvel
+                  </button>
+                  <button class="btnLite" onclick="showNewLeadModal()">
+                    <i class="fa-solid fa-user-plus"></i> Novo Lead
+                  </button>
+                  <button class="btnLite" onclick="showScheduleModal()">
+                    <i class="fa-solid fa-calendar-plus"></i> Novo Compromisso
+                  </button>
+                  <button class="btnLite" onclick="switchView('site')">
+                    <i class="fa-solid fa-globe"></i> Prévia do Site
+                  </button>
+                  <button class="btnLite" onclick="switchView('profile')">
+                    <i class="fa-solid fa-user-pen"></i> Editar Perfil
+                  </button>
+                  <button class="btnLite" onclick="generateReport()">
+                    <i class="fa-solid fa-file-export"></i> Gerar Relatório
+                  </button>
+                </div>
+
+                <!-- Today's Focus -->
+                <div class="panel" style="margin-top:24px; border-radius:var(--radius-lg)">
+                  <div class="panelHeader">
+                    <div class="hTitle">
+                      <strong data-i18n="focus_today">Foco de hoje</strong>
+                      <span data-i18n="focus_today_sub">3 tarefas para aumentar conversão</span>
+                    </div>
+                  </div>
+                  <div class="panelBody">
+                    <div class="kanban-card" onclick="showToast('Abrindo tarefa…')">
+                      <div class="kanban-card-title" data-i18n="task1">Responder leads em até 5 minutos</div>
+                      <div class="kanban-card-meta">
+                        <span><i class="fa-regular fa-clock"></i> 2 pendentes</span>
+                        <span><i class="fa-solid fa-bolt"></i> Alta prioridade</span>
+                      </div>
+                    </div>
+                    <div class="kanban-card" onclick="showToast('Abrindo tarefa…')">
+                      <div class="kanban-card-title" data-i18n="task2">Atualizar fotos dos imóveis mais visitados</div>
+                      <div class="kanban-card-meta">
+                        <span><i class="fa-regular fa-image"></i> 3 imóveis</span>
+                        <span><i class="fa-solid fa-arrow-up-right-dots"></i> + conversão</span>
+                      </div>
+                    </div>
+                    <div class="kanban-card" onclick="showToast('Abrindo tarefa…')">
+                      <div class="kanban-card-title" data-i18n="task3">Reativar contatos parados há 14 dias</div>
+                      <div class="kanban-card-meta">
+                        <span><i class="fa-solid fa-rotate"></i> 5 contatos</span>
+                        <span><i class="fa-solid fa-message"></i> WhatsApp</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROPERTIES VIEW -->
+        <section class="view" id="view-properties">
+          <div class="panel">
+            <div class="panelHeader">
+              <div class="hTitle">
+                <strong data-i18n="prop_title">Gestão de Imóveis</strong>
+                <span data-i18n="prop_sub">Total: <span id="propertiesCount">5</span> imóveis</span>
+              </div>
+              <div style="display:flex; gap:12px">
+                <button class="btn btn-outline" onclick="exportProperties()">
+                  <i class="fa-solid fa-file-export"></i> Exportar
+                </button>
+                <button class="btn btn-primary" onclick="showNewPropertyModal()">
+                  <i class="fa-solid fa-plus"></i> Novo Imóvel
+                </button>
+              </div>
+            </div>
+            <div class="panelBody">
+              <div style="display:flex; gap:12px; margin-bottom:20px">
+                <select class="form-control" style="width:150px" id="typeFilter">
+                  <option value="">Todos Tipos</option>
+                  <option value="apartment">Apartamento</option>
+                  <option value="house">Casa</option>
+                  <option value="commercial">Comercial</option>
+                  <option value="land">Terreno</option>
+                </select>
+                <select class="form-control" style="width:150px" id="statusFilter">
+                  <option value="">Todos Status</option>
+                  <option value="active">Ativo</option>
+                  <option value="reserved">Reservado</option>
+                  <option value="sold">Vendido</option>
+                  <option value="rented">Alugado</option>
+                </select>
+                <div class="search" style="flex:1; min-width:200px">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="propertySearch" placeholder="Buscar imóvel...">
+                </div>
+              </div>
+
+              <div class="tableContainer">
+                <table class="table" id="propertiesTable">
+                  <thead>
+                    <tr>
+                      <th>Imóvel</th>
+                      <th>Tipo</th>
+                      <th>Localização</th>
+                      <th>Preço</th>
+                      <th>Status</th>
+                      <th>Visitas</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="propertiesTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEADS VIEW -->
+        <section class="view" id="view-leads">
+          <div class="panel">
+            <div class="panelHeader">
+              <div class="hTitle">
+                <strong data-i18n="leads_title">Gestão de Leads</strong>
+                <span data-i18n="leads_sub">Total: <span id="leadsCount">5</span> leads ativos</span>
+              </div>
+              <div style="display:flex; gap:12px">
+                <button class="btn btn-outline" onclick="importLeads()">
+                  <i class="fa-solid fa-file-import"></i> Importar
+                </button>
+                <button class="btn btn-primary" onclick="showNewLeadModal()">
+                  <i class="fa-solid fa-user-plus"></i> Novo Lead
+                </button>
+              </div>
+            </div>
+            <div class="panelBody">
+              <!-- Kanban Board -->
+              <div class="kanban" id="leadsKanban"></div>
+
+              <!-- Leads Table -->
+              <div class="panel" style="margin-top:24px">
+                <div class="panelHeader">
+                  <div class="hTitle">
+                    <strong>Todos os Leads</strong>
+                    <span>Visão detalhada em tabela</span>
+                  </div>
+                  <button class="btn btn-outline" onclick="exportLeads()">
+                    <i class="fa-solid fa-file-export"></i> Exportar CSV
+                  </button>
+                </div>
+                <div class="panelBody">
+                  <div class="tableContainer">
+                    <table class="table" id="leadsTable">
+                      <thead>
+                        <tr>
+                          <th>Nome</th>
+                          <th>Contato</th>
+                          <th>Interesse</th>
+                          <th>Fonte</th>
+                          <th>Status</th>
+                          <th>Última Atividade</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody id="leadsTbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MESSAGES VIEW -->
+        <section class="view" id="view-messages">
+          <div class="panel">
+            <div class="panelHeader">
+              <div class="hTitle">
+                <strong data-i18n="msg_title">Mensagens</strong>
+                <span data-i18n="msg_sub">Inbox unificado (WhatsApp/Chat/Site)</span>
+              </div>
+              <button class="btn btn-outline" onclick="connectWhatsApp()">
+                <i class="fa-brands fa-whatsapp"></i><span data-i18n="btn_connect_whats">Conectar WhatsApp</span>
+              </button>
+            </div>
+            <div class="panelBody">
+              <div class="inbox">
+                <div class="inLeft">
+                  <div class="inLeftHead">
+                    <span data-i18n="threads">Conversas</span>
+                    <span class="tag good"><i class="fa-solid fa-circle"></i> Online</span>
+                  </div>
+                  <div id="threads"></div>
+                </div>
+
+                <div class="inRight">
+                  <div class="inRightHead">
+                    <div>
+                      <strong id="chatTitle">Mariana Souza</strong>
+                      <div style="font-size:12px;color:var(--muted);font-weight:500" id="chatSub">
+                        Lead • Apartamento • Centro
+                      </div>
+                    </div>
+                    <button class="btnLite btnGood" onclick="showToast('Abrir lead: em breve')">
+                      <i class="fa-solid fa-up-right-from-square"></i><span data-i18n="btn_open_lead">Abrir lead</span>
+                    </button>
+                  </div>
+                  <div class="msgArea" id="chatArea"></div>
+                  <div class="composer">
+                    <input id="msgInput" type="text" placeholder="Escreva uma mensagem..." />
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                      <i class="fa-solid fa-paper-plane"></i><span data-i18n="btn_send">Enviar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SITE VIEW -->
+        <section class="view" id="view-site">
+          <div class="panel">
+            <div class="panelHeader">
+              <div class="hTitle">
+                <strong data-i18n="site_title">Site do Corretor</strong>
+                <span data-i18n="site_sub">Prévia em tempo real das cores, logo e vitrine</span>
+              </div>
+              <div style="display:flex; gap:12px">
+                <button class="btn btn-outline" onclick="openPublicSite()">
+                  <i class="fa-solid fa-up-right-from-square"></i><span data-i18n="btn_open_public">Abrir público</span>
+                </button>
+                <button class="btn btn-primary" onclick="switchView('profile')">
+                  <i class="fa-solid fa-brush"></i><span data-i18n="btn_edit_appearance">Editar aparência</span>
+                </button>
+              </div>
+            </div>
+            <div class="panelBody">
+              <div class="sitePreview">
+                <div class="siteTop">
+                  <div class="siteLogo">
+                    <span class="dot"></span>
+                    <span id="siteLogoText">Geraldo Neves Imóveis</span>
+                  </div>
+                  <span class="tag good"><i class="fa-solid fa-wand-magic-sparkles"></i> Preview</span>
+                </div>
+
+                <div class="siteFrame">
+                  <div class="siteHero" id="siteHero">
+                    <h3 id="siteHeroTitle">Seu imóvel ideal está aqui.</h3>
+                    <p id="siteHeroSub">Vitrine de imóveis atualizada automaticamente pelo seu CRM. Atendimento rápido e profissional.</p>
+                  </div>
+
+                  <div class="siteCards" id="siteCards"></div>
+
+                  <div style="height:12px"></div>
+                  <div class="hint" data-i18n="site_hint">
+                    Dica: ao cadastrar um imóvel no CRM, ele aparece aqui e depois no site público.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROFILE VIEW -->
+        <section class="view" id="view-profile">
+          <div class="panel">
+            <div class="panelHeader">
+              <div class="hTitle">
+                <strong data-i18n="profile_title">Perfil & Aparência</strong>
+                <span data-i18n="profile_sub">Foto, logo e cores do seu site (prévia instantânea)</span>
+              </div>
+              <button class="btn btn-primary" onclick="saveProfile()">
+                <i class="fa-solid fa-floppy-disk"></i><span data-i18n="btn_save">Salvar</span>
+              </button>
+            </div>
+            <div class="panelBody">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label data-i18n="f_broker_name">Nome do corretor</label>
+                  <input id="fBrokerName" class="form-control" value="Geraldo Neves" />
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_creci">CRECI</label>
+                  <input id="fCreci" class="form-control" value="00000" />
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_whatsapp">WhatsApp</label>
+                  <input id="fWhatsapp" class="form-control" value="(83) 9xxxx-xxxx" />
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_site_name">Nome do site</label>
+                  <input id="fSiteName" class="form-control" value="Geraldo Neves Imóveis" />
+                </div>
+
+                <div class="form-group">
+                  <label data-i18n="f_primary_color">Cor primária do site</label>
+                  <input id="fPrimary" type="color" class="form-control" value="#2563eb" />
+                </div>
+                <div class="form-group">
+                  <label data-i18n="f_secondary_color">Cor secundária do site</label>
+                  <input id="fSecondary" type="color" class="form-control" value="#0ea5e9" />
+                </div>
+
+                <div class="form-group" style="grid-column:1 / -1">
+                  <label data-i18n="f_bio">Descrição curta (hero do site)</label>
+                  <textarea id="fBio" class="form-control">Vitrine de imóveis atualizada automaticamente pelo seu CRM. Atendimento rápido e profissional.</textarea>
+                </div>
+
+                <div class="form-group">
+                  <label data-i18n="f_photo">Foto do corretor (preview)</label>
+                  <input id="fPhoto" type="file" class="form-control" accept="image/*" />
+                  <div class="hint" data-i18n="hint_photo">A foto aparece no topo do CRM e no seu perfil.</div>
+                </div>
+
+                <div class="form-group">
+                  <label data-i18n="f_logo">Logo do site (preview)</label>
+                  <input id="fLogo" type="file" class="form-control" accept="image/*" />
+                  <div class="hint" data-i18n="hint_logo">A logo será usada no site público e materiais.</div>
+                </div>
+              </div>
+
+              <!-- Preview -->
+              <div class="panel" style="margin-top:24px; border-radius:var(--radius-lg)">
+                <div class="panelHeader">
+                  <div class="hTitle">
+                    <strong data-i18n="preview_title">Prévia instantânea</strong>
+                    <span data-i18n="preview_sub">Veja como o cliente vai enxergar seu site</span>
+                  </div>
+                  <button class="btn btn-outline" onclick="switchView('site')">
+                    <i class="fa-solid fa-globe"></i> <span data-i18n="btn_go_preview">Ir para prévia</span>
+                  </button>
+                </div>
+                <div class="panelBody">
+                  <div class="sitePreview">
+                    <div class="siteTop">
+                      <div class="siteLogo">
+                        <span class="dot"></span>
+                        <span id="siteLogoText2">Geraldo Neves Imóveis</span>
+                      </div>
+                      <span class="tag good"><i class="fa-solid fa-eye"></i> Live</span>
+                    </div>
+                    <div class="siteFrame">
+                      <div class="siteHero">
+                        <h3 id="siteHeroTitle2">Seu imóvel ideal está aqui.</h3>
+                        <p id="siteHeroSub2">Vitrine de imóveis atualizada automaticamente pelo seu CRM. Atendimento rápido e profissional.</p>
+                      </div>
+                      <div class="hint" style="margin-top:12px" data-i18n="hint_live">
+                        Tudo que você mudar aqui reflete na prévia do site.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CALENDAR VIEW -->
+        <section class="view" id="view-calendar">
+          <div class="panel">
+            <div class="panelHeader">
+              <div class="hTitle">
+                <strong>Agenda</strong>
+                <span>Visitas e compromissos</span>
+              </div>
+              <button class="btn btn-primary" onclick="showScheduleModal()">
+                <i class="fa-solid fa-calendar-plus"></i> Novo Compromisso
+              </button>
+            </div>
+            <div class="panelBody">
+              <div class="calendar">
+                <div class="calendar-header">
+                  <button class="btn btn-outline" style="background:white;color:var(--text)" onclick="prevMonth()">
+                    <i class="fa-solid fa-chevron-left"></i>
+                  </button>
+                  <h3 id="currentMonth">Julho 2024</h3>
+                  <button class="btn btn-outline" style="background:white;color:var(--text)" onclick="nextMonth()">
+                    <i class="fa-solid fa-chevron-right"></i>
+                  </button>
+                </div>
+                <div class="calendar-body">
+                  <div class="calendar-grid" id="calendarGrid">
+                    <!-- Dias da semana -->
+                    <div class="calendar-day-header">Dom</div>
+                    <div class="calendar-day-header">Seg</div>
+                    <div class="calendar-day-header">Ter</div>
+                    <div class="calendar-day-header">Qua</div>
+                    <div class="calendar-day-header">Qui</div>
+                    <div class="calendar-day-header">Sex</div>
+                    <div class="calendar-day-header">Sáb</div>
+                    <!-- Dias serão gerados pelo JavaScript -->
+                  </div>
+                  <div class="calendar-events" id="calendarEvents">
+                    <h4>Compromissos de Hoje</h4>
+                    <div class="event-item">
+                      <div>
+                        <strong>Visita - Apartamento Centro</strong>
+                        <div style="font-size:12px;color:var(--muted)">14:30 • Mariana Souza</div>
+                      </div>
+                      <button class="btn btn-outline" style="padding:6px 12px">
+                        <i class="fa-solid fa-phone"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- REPORTS VIEW -->
+        <section class="view" id="view-reports">
+          <div class="panel">
+            <div class="panelHeader">
+              <div class="hTitle">
+                <strong>Relatórios</strong>
+                <span>Análise detalhada do desempenho</span>
+              </div>
+              <button class="btn btn-primary" onclick="generateReportPDF()">
+                <i class="fa-solid fa-file-pdf"></i> Gerar Relatório PDF
+              </button>
+            </div>
+            <div class="panelBody">
+              <div class="grid">
+                <div class="panel">
+                  <div class="panelHeader">
+                    <strong>Desempenho Mensal</strong>
+                    <button class="btn btn-outline" onclick="generateMonthlyReport()">
+                      <i class="fa-solid fa-chart-column"></i> Gerar Gráfico
+                    </button>
+                  </div>
+                  <div class="panelBody">
+                    <div class="chartWrap">
+                      <canvas id="monthlyReportChart"></canvas>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="panelHeader">
+                    <strong>Métricas Chave</strong>
+                  </div>
+                  <div class="panelBody">
+                    <div class="metrics">
+                      <div class="mCard">
+                        <div class="mVal">85%</div>
+                        <div class="mLbl">Taxa de Resposta</div>
+                      </div>
+                      <div class="mCard">
+                        <div class="mVal">12.4</div>
+                        <div class="mLbl">Dias p/ Conversão</div>
+                      </div>
+                    </div>
+                    <div style="margin-top:20px">
+                      <button class="btn btn-primary" onclick="exportReportData()">
+                        <i class="fa-solid fa-file-export"></i> Exportar Dados
+                      </button>
+                      <button class="btn btn-outline" onclick="printReport()" style="margin-left:12px">
+                        <i class="fa-solid fa-print"></i> Imprimir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+<!-- BILLING -->
+<section class="view" id="view-billing" style="display:none;">
+  <div class="page-title">
+    <h2>Assinatura</h2>
+    <p class="muted">Ative sua assinatura recorrente para liberar o sistema após o trial.</p>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3>Status atual</h3>
+      <div id="billingStatus" class="muted">Carregando...</div>
+      <div class="hr"></div>
+      <div class="muted" style="font-size:13px">
+        Se o trial expirar, as funções de cadastro e edição ficam bloqueadas até ativar a assinatura.
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Escolha seu plano</h3>
+      <div class="muted" style="margin-top:6px">Pagamento recorrente mensal via Mercado Pago.</div>
+
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap">
+        <button class="btn primary" onclick="startSubscription('basico')">
+          Assinar Básico
+        </button>
+        <button class="btn primary" onclick="startSubscription('profissional')">
+          Assinar Profissional
+        </button>
+      </div>
+
+      <div id="billingMsg" class="muted" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: NOVO IMÓVEL COM FOTOS -->
+  <div class="modal-backdrop" id="modalNewProperty">
+    <div class="modal">
+      <div class="modal-header">
+        <strong>Cadastrar Novo Imóvel</strong>
+        <button class="btn btn-outline" onclick="closeModal('modalNewProperty')" style="padding:8px">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="propertyForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="propertyTitle">Título do Imóvel *</label>
+              <input type="text" id="propertyTitle" class="form-control" required
+                     placeholder="Ex: Apartamento 2 quartos no Centro">
+            </div>
+            <div class="form-group">
+              <label for="propertyType">Tipo *</label>
+              <select id="propertyType" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="apartment">Apartamento</option>
+                <option value="house">Casa</option>
+                <option value="commercial">Comercial</option>
+                <option value="land">Terreno</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="propertyAddress">Endereço *</label>
+              <input type="text" id="propertyAddress" class="form-control" required
+                     placeholder="Rua, número, bairro">
+            </div>
+            <div class="form-group">
+              <label for="propertyCity">Cidade *</label>
+              <input type="text" id="propertyCity" class="form-control" required
+                     placeholder="Cidade">
+            </div>
+            <div class="form-group">
+              <label for="propertyPrice">Valor (R$) *</label>
+              <input type="number" id="propertyPrice" class="form-control" required
+                     placeholder="450000" min="0">
+            </div>
+            <div class="form-group">
+              <label for="propertyArea">Área (m²)</label>
+              <input type="number" id="propertyArea" class="form-control"
+                     placeholder="120">
+            </div>
+            <div class="form-group">
+              <label for="propertyBedrooms">Quartos</label>
+              <input type="number" id="propertyBedrooms" class="form-control"
+                     placeholder="2" min="0">
+            </div>
+            <div class="form-group">
+              <label for="propertyBathrooms">Banheiros</label>
+              <input type="number" id="propertyBathrooms" class="form-control"
+                     placeholder="2" min="0">
+            </div>
+            <div class="form-group" style="grid-column:1 / -1">
+              <label for="propertyDescription">Descrição *</label>
+              <textarea id="propertyDescription" class="form-control" rows="4" required
+                        placeholder="Descreva o imóvel, suas características, localização, comodidades..."></textarea>
+            </div>
+            
+            <!-- Upload de Fotos -->
+            <div class="form-group" style="grid-column:1 / -1">
+              <label>Fotos do Imóvel *</label>
+              <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('propertyPhotos').click()">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <h4>Arraste fotos aqui ou clique para selecionar</h4>
+                <p style="color:var(--muted); font-size:14px;">Formatos: JPG, PNG, WEBP (máx. 5MB por imagem)</p>
+                <p style="color:var(--muted); font-size:12px;">Recomendado: 3-5 fotos do imóvel</p>
+              </div>
+              <input type="file" id="propertyPhotos" multiple accept="image/*" style="display:none" 
+                     onchange="handlePropertyPhotos(event)">
+              <div class="photo-preview" id="propertyPhotoPreview"></div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalNewProperty')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveProperty()">
+          <i class="fa-solid fa-save"></i> Salvar Imóvel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVO LEAD -->
+  <div class="modal-backdrop" id="modalNewLead">
+    <div class="modal">
+      <div class="modal-header">
+        <strong>Cadastrar Novo Lead</strong>
+        <button class="btn btn-outline" onclick="closeModal('modalNewLead')" style="padding:8px">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="leadForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="leadName">Nome Completo *</label>
+              <input type="text" id="leadName" class="form-control" required
+                     placeholder="Ex: João Silva">
+            </div>
+            <div class="form-group">
+              <label for="leadEmail">E-mail</label>
+              <input type="email" id="leadEmail" class="form-control"
+                     placeholder="joao@email.com">
+            </div>
+            <div class="form-group">
+              <label for="leadPhone">Telefone/WhatsApp *</label>
+              <input type="tel" id="leadPhone" class="form-control" required
+                     placeholder="(83) 99999-9999">
+            </div>
+            <div class="form-group">
+              <label for="leadSource">Origem *</label>
+              <select id="leadSource" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="site">Site</option>
+                <option value="whatsapp">WhatsApp</option>
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+                <option value="referral">Indicação</option>
+                <option value="other">Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="leadInterest">Interesse *</label>
+              <select id="leadInterest" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="apartment">Apartamento</option>
+                <option value="house">Casa</option>
+                <option value="commercial">Comercial</option>
+                <option value="land">Terreno</option>
+                <option value="rent">Aluguel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="leadBudget">Orçamento (R$)</label>
+              <input type="number" id="leadBudget" class="form-control"
+                     placeholder="Ex: 500000">
+            </div>
+            <div class="form-group" style="grid-column:1 / -1">
+              <label for="leadNotes">Observações</label>
+              <textarea id="leadNotes" class="form-control" rows="3"
+                        placeholder="Informações adicionais sobre o lead..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalNewLead')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveLead()">
+          <i class="fa-solid fa-save"></i> Salvar Lead
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVO COMPROMISSO -->
+  <div class="modal-backdrop" id="modalNewSchedule">
+    <div class="modal">
+      <div class="modal-header">
+        <strong>Agendar Novo Compromisso</strong>
+        <button class="btn btn-outline" onclick="closeModal('modalNewSchedule')" style="padding:8px">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="scheduleForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="scheduleTitle">Título *</label>
+              <input type="text" id="scheduleTitle" class="form-control" required
+                     placeholder="Ex: Visita ao apartamento">
+            </div>
+            <div class="form-group">
+              <label for="scheduleType">Tipo *</label>
+              <select id="scheduleType" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="visit">Visita</option>
+                <option value="meeting">Reunião</option>
+                <option value="contract">Assinatura de Contrato</option>
+                <option value="followup">Follow-up</option>
+                <option value="other">Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="scheduleDate">Data *</label>
+              <input type="date" id="scheduleDate" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="scheduleTime">Hora *</label>
+              <input type="time" id="scheduleTime" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="scheduleClient">Cliente/Lead</label>
+              <select id="scheduleClient" class="form-control">
+                <option value="">Selecione um lead...</option>
+                <option value="1">Mariana Souza</option>
+                <option value="2">João Victor</option>
+                <option value="3">Fernanda Lima</option>
+                <option value="4">Paulo Henrique</option>
+                <option value="5">Ana Clara</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="scheduleProperty">Imóvel</label>
+              <select id="scheduleProperty" class="form-control">
+                <option value="">Selecione um imóvel...</option>
+                <option value="1">Apartamento 2Q no Centro</option>
+                <option value="2">Casa 3Q em Condomínio</option>
+                <option value="3">Studio mobiliado</option>
+                <option value="4">Terreno 12x30</option>
+                <option value="5">Sala Comercial</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column:1 / -1">
+              <label for="scheduleDescription">Descrição</label>
+              <textarea id="scheduleDescription" class="form-control" rows="3"
+                        placeholder="Detalhes do compromisso..."></textarea>
+            </div>
+            <div class="form-group">
+              <label for="scheduleReminder">Lembrete</label>
+              <select id="scheduleReminder" class="form-control">
+                <option value="">Sem lembrete</option>
+                <option value="5">5 minutos antes</option>
+                <option value="15">15 minutos antes</option>
+                <option value="30">30 minutos antes</option>
+                <option value="60">1 hora antes</option>
+                <option value="1440">1 dia antes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="scheduleStatus">Status</label>
+              <select id="scheduleStatus" class="form-control">
+                <option value="scheduled">Agendado</option>
+                <option value="confirmed">Confirmado</option>
+                <option value="pending">Pendente</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modalNewSchedule')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveSchedule()">
+          <i class="fa-solid fa-calendar-check"></i> Agendar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: NOTIFICAÇÕES -->
+  <div class="modal-backdrop notifications-modal" id="modalNotifications">
+    <div class="modal">
+      <div class="modal-header">
+        <strong>Notificações</strong>
+        <button class="btn btn-outline" onclick="closeModal('modalNotifications')" style="padding:8px">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="notificationsList">
+          <div class="notification-item">
+            <div class="notification-icon">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="notification-content">
+              <strong>Visita agendada para hoje às 14:30</strong>
+              <p>Apartamento Centro com Mariana Souza</p>
+              <div class="notification-time">Hoje, 09:00</div>
+            </div>
+          </div>
+          <div class="notification-item">
+            <div class="notification-icon">
+              <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <div class="notification-content">
+              <strong>Novo lead recebido</strong>
+              <p>João Silva interessado em casa</p>
+              <div class="notification-time">Ontem, 16:45</div>
+            </div>
+          </div>
+          <div class="notification-item">
+            <div class="notification-icon">
+              <i class="fa-solid fa-house-circle-check"></i>
+            </div>
+            <div class="notification-content">
+              <strong>Imóvel reservado</strong>
+              <p>Apartamento Studio foi reservado</p>
+              <div class="notification-time">2 dias atrás</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="markAllNotificationsRead()">
+          <i class="fa-solid fa-check-double"></i> Marcar todas como lidas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+/**
+ * IMOBIPRO - CRM Corretor (versão funcional)
+ * - Sem dados pré-configurados: inicia zerado
+ * - Conecta no Supabase (profiles/tenants/site_settings/properties/leads)
+ * - Corrige erros de modal/IDs inexistentes e placeholders "..."
+ *
+ * Observação: este arquivo assume que existe /shared/config/supabase.js no projeto,
+ * exportando { supabase } (createClient com NEXT_PUBLIC keys via Vercel env).
+ */
+(function () {
+  "use strict";
+
+  // -----------------------------
+  // Estado (sempre inicia zerado)
+  // -----------------------------
+  const State = {
+    userId: null,
+    tenantId: null,
+    tenantSlug: null,
+    tenantName: null,
+    role: null,
+
+    broker: {
+      name: "",
+      creci: "",
+      whatsapp: "",
+      bio: "",
+      photoDataUrl: "",
+      logoDataUrl: "",
+    },
+
+    site: {
+      siteName: "",
+      primary: "#1a3a5f",
+      secondary: "#25D366",
+      heroTitle: "Seu site imobiliário, do seu jeito",
+      heroSub: "Crie, publique e gerencie seus imóveis em minutos.",
+    },
+
+    properties: [],
+    leads: [],
+  };
+
+  // -----------------------------
+  // Helpers DOM
+  // -----------------------------
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  function safeSetText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value ?? "";
+  }
+  function safeSetValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value ?? "";
+  }
+  function safeSetHTML(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = value ?? "";
+  }
+
+  function formatMoneyBRL(n) {
+    const v = Number(n || 0);
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  function formatDate(dt) {
+    try {
+      return new Date(dt).toLocaleString("pt-BR");
+    } catch {
+      return "";
+    }
+  }
+  function uid(prefix = "id") {
+    return prefix + "_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+  }
+
+  // -----------------------------
+  // Toast
+  // -----------------------------
+  function showToast(message, type = "info") {
+    const wrap = document.createElement("div");
+    wrap.style.position = "fixed";
+    wrap.style.right = "18px";
+    wrap.style.bottom = "18px";
+    wrap.style.zIndex = "99999";
+    wrap.style.maxWidth = "360px";
+
+    const el = document.createElement("div");
+    el.style.background = type === "success" ? "#16a34a" : type === "error" ? "#dc2626" : "#0f172a";
+    el.style.color = "white";
+    el.style.padding = "12px 14px";
+    el.style.borderRadius = "12px";
+    el.style.boxShadow = "0 10px 30px rgba(0,0,0,.18)";
+    el.style.fontWeight = "600";
+    el.style.fontSize = "14px";
+    el.textContent = message;
+
+    wrap.appendChild(el);
+    document.body.appendChild(wrap);
+
+    setTimeout(() => wrap.remove(), 3200);
+  }
+  window.showToast = showToast;
+
+  // -----------------------------
+  // Sidebar / views (sem quebrar)
+  // -----------------------------
+  window.toggleSidebar = function toggleSidebar() {
+    document.body.classList.toggle("sidebar-collapsed");
+  };
+
+  window.switchView = function switchView(view) {
+    // A página usa ids: view-site, view-profile, view-leads e mais.
+    const views = ["site", "profile", "leads"];
+    views.forEach((v) => {
+      const el = document.getElementById("view-" + v);
+      if (el) el.style.display = v === view ? "block" : "none";
+    });
+    // badges etc
+    render();
+  };
+
+  // -----------------------------
+  // Modais (propriedade / lead / agenda)
+  // -----------------------------
+  function openModalById(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add("active");
+    modal.style.display = "flex";
+  }
+  function closeModalById(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove("active");
+    modal.style.display = "none";
+  }
+
+  // Fecha modal clicando fora (se o HTML usar .modal-content, preserva)
+  document.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+    const modal = target.closest(".modal");
+    if (modal && target === modal) {
+      modal.classList.remove("active");
+      modal.style.display = "none";
+    }
+  });
+
+  window.showNewPropertyModal = function showNewPropertyModal() {
+    // limpa form
+    safeSetValue("propertyTitle", "");
+    safeSetValue("propertyType", "");
+    safeSetValue("propertyCity", "");
+    safeSetValue("propertyAddress", "");
+    safeSetValue("propertyBedrooms", "");
+    safeSetValue("propertyBathrooms", "");
+    safeSetValue("propertyArea", "");
+    safeSetValue("propertyPrice", "");
+    safeSetValue("propertyDescription", "");
+    const preview = document.getElementById("propertyPhotoPreview");
+    if (preview) preview.innerHTML = "";
+    const photos = document.getElementById("propertyPhotos");
+    if (photos) photos.value = "";
+    openModalById("modalNewProperty");
+  };
+
+  window.showNewLeadModal = function showNewLeadModal() {
+    safeSetValue("leadName", "");
+    safeSetValue("leadEmail", "");
+    safeSetValue("leadPhone", "");
+    safeSetValue("leadSource", "");
+    safeSetValue("leadInterest", "");
+    safeSetValue("leadBudget", "");
+    safeSetValue("leadNotes", "");
+    openModalById("modalNewLead");
+  };
+
+  window.showScheduleModal = function showScheduleModal() {
+    // Se existir modal de agenda, apenas abre; se não, toast.
+    const modal = document.getElementById("modalSchedule");
+    if (modal) openModalById("modalSchedule");
+    else showToast("Agenda: em breve");
+  };
+
+  // Alguns botões chamam essas funções
+  window.showSupport = () => showToast("Suporte: em breve");
+  window.showDocs = () => showToast("Documentação: em breve");
+  window.showNotificationsModal = () => showToast("Notificações: em breve");
+  window.generateReport = () => showToast("Relatórios: em breve");
+  window.exportProperties = () => exportJSON("imoveis.json", State.properties);
+  window.exportLeads = () => exportJSON("leads.json", State.leads);
+  window.importLeads = () => showToast("Importação: em breve");
+  window.connectWhatsApp = () => showToast("WhatsApp: em breve");
+  window.sendMessage = () => showToast("Mensagens: em breve");
+
+  function exportJSON(filename, data) {
+    try {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast("Arquivo exportado.", "success");
+    } catch {
+      showToast("Falha ao exportar.", "error");
+    }
+  }
+
+  // -----------------------------
+  // Preview de fotos (client-side)
+  // -----------------------------
+  const propertyPhotos = document.getElementById("propertyPhotos");
+  if (propertyPhotos) {
+    propertyPhotos.addEventListener("change", async (e) => {
+      const input = e.target;
+      if (!(input instanceof HTMLInputElement) || !input.files) return;
+      const preview = document.getElementById("propertyPhotoPreview");
+      if (!preview) return;
+      preview.innerHTML = "";
+      const files = Array.from(input.files).slice(0, 8);
+      for (const file of files) {
+        const url = await fileToDataURL(file);
+        const img = document.createElement("img");
+        img.src = url;
+        img.style.width = "72px";
+        img.style.height = "72px";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "10px";
+        img.style.marginRight = "8px";
+        img.style.marginBottom = "8px";
+        preview.appendChild(img);
+      }
+    });
+  }
+
+  async function fileToDataURL(file) {
+    return await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result || ""));
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  // -----------------------------
+  // Supabase sync (chamado depois do auth)
+  // -----------------------------
+  async function loadFromSupabase() {
+    const supabase = window.supabase;
+    if (!supabase) {
+      showToast("Supabase não carregou. Verifique /shared/config/supabase.js", "error");
+      return;
+    }
+    if (!State.tenantId) return;
+
+    // tenant
+    {
+      const { data, error } = await supabase
+        .from("tenants")
+        .select("name, slug, plan, active")
+        .eq("id", State.tenantId)
+        .single();
+      if (!error && data) {
+        State.tenantName = data.name || "";
+        State.tenantSlug = data.slug || "";
+      }
+    }
+
+    // site settings
+    {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("logo_url, primary_color, domain")
+        .eq("tenant_id", State.tenantId)
+        .single();
+
+      if (!error && data) {
+        if (data.primary_color) State.site.primary = data.primary_color;
+        // logo_url pode ser URL ou dataurl (se você salvar assim)
+        // se vier vazio, mantém o que estiver em localStorage
+        if (data.logo_url) State.broker.logoDataUrl = data.logo_url;
+      }
+    }
+
+    // properties
+    {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*")
+        .eq("tenant_id", State.tenantId)
+        .order("created_at", { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        State.properties = data.map((row) => hydrateProperty(row));
+      } else {
+        State.properties = [];
+      }
+    }
+
+    // leads
+    {
+      const { data, error } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("tenant_id", State.tenantId)
+        .order("created_at", { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        State.leads = data.map((row) => hydrateLead(row));
+      } else {
+        State.leads = [];
+      }
+    }
+
+    // aplica em UI
+    applyStateToForm();
+    render();
+  }
+
+  function hydrateProperty(row) {
+    const base = {
+      id: row.id || uid("prop"),
+      created_at: row.created_at || new Date().toISOString(),
+      title: row.title || "",
+      price: row.price || 0,
+      status: row.status || "ativo",
+      description: row.description || "",
+      photos: [],
+      type: "",
+      city: "",
+      address: "",
+      bedrooms: "",
+      bathrooms: "",
+      area: "",
+    };
+
+    // Se você optar por guardar campos extras em JSON dentro de description:
+    // { text, type, city, ... , photos }
+    try {
+      const maybe = JSON.parse(row.description || "");
+      if (maybe && typeof maybe === "object") {
+        if (typeof maybe.text === "string") base.description = maybe.text;
+        base.type = maybe.type || base.type;
+        base.city = maybe.city || base.city;
+        base.address = maybe.address || base.address;
+        base.bedrooms = maybe.bedrooms || base.bedrooms;
+        base.bathrooms = maybe.bathrooms || base.bathrooms;
+        base.area = maybe.area || base.area;
+        base.photos = Array.isArray(maybe.photos) ? maybe.photos : [];
+      }
+    } catch {}
+
+    return base;
+  }
+
+  function hydrateLead(row) {
+    const base = {
+      id: row.id || uid("lead"),
+      created_at: row.created_at || new Date().toISOString(),
+      name: row.name || "",
+      email: row.email || "",
+      phone: row.phone || "",
+      message: row.message || "",
+      source: "",
+      interest: "",
+      budget: "",
+      notes: "",
+      stage: "novo",
+    };
+
+    // mesmos extras via JSON em message
+    try {
+      const maybe = JSON.parse(row.message || "");
+      if (maybe && typeof maybe === "object") {
+        if (typeof maybe.text === "string") base.message = maybe.text;
+        base.source = maybe.source || "";
+        base.interest = maybe.interest || "";
+        base.budget = maybe.budget || "";
+        base.notes = maybe.notes || "";
+        base.stage = maybe.stage || "novo";
+      }
+    } catch {}
+
+    return base;
+  }
+
+  // -----------------------------
+  // Persistência local (pequenas preferências)
+  // -----------------------------
+  function loadLocalPrefs() {
+    try {
+      const raw = localStorage.getItem("imobipro_crm_prefs");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.broker) Object.assign(State.broker, parsed.broker);
+      if (parsed?.site) Object.assign(State.site, parsed.site);
+    } catch {}
+  }
+  function saveLocalPrefs() {
+    try {
+      localStorage.setItem("imobipro_crm_prefs", JSON.stringify({ broker: State.broker, site: State.site }));
+    } catch {}
+  }
+
+  // -----------------------------
+  // Form profile / site
+  // -----------------------------
+  function applyStateToForm() {
+    safeSetValue("fBrokerName", State.broker.name);
+    safeSetValue("fCreci", State.broker.creci);
+    safeSetValue("fWhatsapp", State.broker.whatsapp);
+    safeSetValue("fBio", State.broker.bio);
+    safeSetValue("fSiteName", State.site.siteName || State.tenantName || "");
+    safeSetValue("fPrimary", State.site.primary);
+    safeSetValue("fSecondary", State.site.secondary);
+
+    // Preview logo/foto (se os inputs existirem)
+    const logoEl = document.getElementById("fLogo");
+    if (logoEl && State.broker.logoDataUrl) {
+      // não força value (browser bloqueia), apenas se houver um preview no HTML
+      const preview = document.getElementById("logoPreview");
+      if (preview) preview.src = State.broker.logoDataUrl;
+    }
+  }
+
+  window.saveProfile = async function saveProfile() {
+    // lê inputs
+    State.broker.name = ($("#fBrokerName")?.value || "").trim();
+    State.broker.creci = ($("#fCreci")?.value || "").trim();
+    State.broker.whatsapp = ($("#fWhatsapp")?.value || "").trim();
+    State.broker.bio = ($("#fBio")?.value || "").trim();
+
+    State.site.siteName = ($("#fSiteName")?.value || "").trim();
+    State.site.primary = ($("#fPrimary")?.value || State.site.primary).trim();
+    State.site.secondary = ($("#fSecondary")?.value || State.site.secondary).trim();
+
+    // arquivos (foto/logo) — salva como dataurl local (você pode evoluir p/ Supabase Storage depois)
+    const photoInput = document.getElementById("fPhoto");
+    if (photoInput instanceof HTMLInputElement && photoInput.files && photoInput.files[0]) {
+      State.broker.photoDataUrl = await fileToDataURL(photoInput.files[0]);
+    }
+    const logoInput = document.getElementById("fLogo");
+    if (logoInput instanceof HTMLInputElement && logoInput.files && logoInput.files[0]) {
+      State.broker.logoDataUrl = await fileToDataURL(logoInput.files[0]);
+    }
+
+    saveLocalPrefs();
+
+    // sync básico no Supabase
+    const supabase = window.supabase;
+    if (supabase && State.tenantId) {
+      // Atualiza tenant.name (nome do site)
+      if (State.site.siteName) {
+        await supabase.from("tenants").update({ name: State.site.siteName }).eq("id", State.tenantId);
+      }
+      // Atualiza cor primária e opcionalmente logo_url
+      await supabase
+        .from("site_settings")
+        .upsert(
+          { tenant_id: State.tenantId, primary_color: State.site.primary, logo_url: State.broker.logoDataUrl || null },
+          { onConflict: "tenant_id" }
+        );
+    }
+
+    applyTheme();
+    render();
+    showToast("Configurações salvas!", "success");
+  };
+
+  // -----------------------------
+  // Abrir site público (/slug)
+  // -----------------------------
+  window.openPublicSite = function openPublicSite() {
+    const slug = State.tenantSlug;
+    if (!slug) {
+      showToast("Slug do seu site não encontrado. Verifique seu tenant no Supabase.", "error");
+      return;
+    }
+    window.open("/" + slug, "_blank");
+  };
+
+  // -----------------------------
+  // CRUD: Imóveis
+  // -----------------------------
+  const propertyForm = document.getElementById("propertyForm");
+  if (propertyForm) {
+    propertyForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        const photosInput = document.getElementById("propertyPhotos");
+        const photos = [];
+        if (photosInput instanceof HTMLInputElement && photosInput.files) {
+          const files = Array.from(photosInput.files).slice(0, 8);
+          for (const f of files) photos.push(await fileToDataURL(f));
+        }
+
+        const prop = {
+          id: uid("prop"),
+          created_at: new Date().toISOString(),
+          title: ($("#propertyTitle")?.value || "").trim(),
+          type: ($("#propertyType")?.value || "").trim(),
+          city: ($("#propertyCity")?.value || "").trim(),
+          address: ($("#propertyAddress")?.value || "").trim(),
+          bedrooms: ($("#propertyBedrooms")?.value || "").trim(),
+          bathrooms: ($("#propertyBathrooms")?.value || "").trim(),
+          area: ($("#propertyArea")?.value || "").trim(),
+          price: Number($("#propertyPrice")?.value || 0),
+          status: "ativo",
+          description: ($("#propertyDescription")?.value || "").trim(),
+          photos,
+        };
+
+        // valida mínimo
+        if (!prop.title) {
+          showToast("Informe o título do imóvel.", "error");
+          return;
+        }
+
+        // salva local (ui instantânea)
+        State.properties.unshift(prop);
+        render();
+
+        // salva no supabase (mínimo garantido)
+        const supabase = window.supabase;
+        if (supabase && State.tenantId) {
+          const payload = {
+            tenant_id: State.tenantId,
+            title: prop.title,
+            price: prop.price,
+            status: prop.status,
+            description: JSON.stringify({
+              text: prop.description,
+              type: prop.type,
+              city: prop.city,
+              address: prop.address,
+              bedrooms: prop.bedrooms,
+              bathrooms: prop.bathrooms,
+              area: prop.area,
+              photos: prop.photos,
+            }),
+          };
+
+          const { error } = await supabase.from("properties").insert(payload);
+          if (error) {
+            console.error(error);
+            showToast("Salvou no CRM, mas falhou no Supabase. Confira o console.", "error");
+          }
+        }
+
+        closeModalById("modalNewProperty");
+        showToast("Imóvel cadastrado!", "success");
+      } catch (err) {
+        console.error(err);
+        showToast("Erro ao salvar imóvel.", "error");
+      }
+    });
+  }
+
+  // -----------------------------
+  // CRUD: Leads
+  // -----------------------------
+  const leadForm = document.getElementById("leadForm");
+  if (leadForm) {
+    leadForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        const lead = {
+          id: uid("lead"),
+          created_at: new Date().toISOString(),
+          name: ($("#leadName")?.value || "").trim(),
+          email: ($("#leadEmail")?.value || "").trim(),
+          phone: ($("#leadPhone")?.value || "").trim(),
+          source: ($("#leadSource")?.value || "").trim(),
+          interest: ($("#leadInterest")?.value || "").trim(),
+          budget: ($("#leadBudget")?.value || "").trim(),
+          notes: ($("#leadNotes")?.value || "").trim(),
+          stage: "novo",
+          message: ($("#leadNotes")?.value || "").trim(),
+        };
+
+        if (!lead.name) {
+          showToast("Informe o nome do lead.", "error");
+          return;
+        }
+
+        State.leads.unshift(lead);
+        render();
+
+        const supabase = window.supabase;
+        if (supabase && State.tenantId) {
+          const payload = {
+            tenant_id: State.tenantId,
+            name: lead.name,
+            email: lead.email,
+            phone: lead.phone,
+            message: JSON.stringify({
+              text: lead.message,
+              source: lead.source,
+              interest: lead.interest,
+              budget: lead.budget,
+              notes: lead.notes,
+              stage: lead.stage,
+            }),
+          };
+          const { error } = await supabase.from("leads").insert(payload);
+          if (error) {
+            console.error(error);
+            showToast("Salvou no CRM, mas falhou no Supabase. Confira o console.", "error");
+          }
+        }
+
+        closeModalById("modalNewLead");
+        showToast("Lead cadastrado!", "success");
+      } catch (err) {
+        console.error(err);
+        showToast("Erro ao salvar lead.", "error");
+      }
+    });
+  }
+
+  // -----------------------------
+  // Render UI (zerado por padrão)
+  // -----------------------------
+  function applyTheme() {
+    document.documentElement.style.setProperty("--primary", State.site.primary);
+    // tenta aplicar secundária se houver variável no css
+    document.documentElement.style.setProperty("--secondary", State.site.secondary);
+  }
+
+  function renderMetrics() {
+    // badges/contadores — só atualiza se existir
+    safeSetText("leadsCount", String(State.leads.length));
+    safeSetText("badgeLeads", String(State.leads.length));
+    safeSetText("mLeadsToday", String(0));
+    safeSetText("mLeadsMonth", String(State.leads.length));
+
+    // imóveis (se existirem ids)
+    safeSetText("mPropertiesTotal", String(State.properties.length));
+
+    // site visits (placeholder)
+    safeSetText("mSiteVisits", "0");
+  }
+
+  function renderPropertiesTable() {
+    const tbody = document.getElementById("propertiesTbody");
+    if (!tbody) return;
+
+    const rows = State.properties.map((p) => {
+      return `
+        <tr>
+          <td><strong>${escapeHTML(p.title)}</strong><div style="font-size:12px;color:#64748b">${escapeHTML(p.city || "")}</div></td>
+          <td>${escapeHTML(p.type || "")}</td>
+          <td>${formatMoneyBRL(p.price)}</td>
+          <td>${escapeHTML(p.status || "ativo")}</td>
+          <td style="font-size:12px;color:#64748b">${formatDate(p.created_at)}</td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = rows.join("") || `<tr><td colspan="5" style="text-align:center;color:#64748b;padding:22px;">Nenhum imóvel cadastrado ainda.</td></tr>`;
+  }
+
+  function renderLeadsTable() {
+    const tbody = document.getElementById("leadsTbody");
+    if (!tbody) return;
+
+    const rows = State.leads.map((l) => {
+      return `
+        <tr>
+          <td><strong>${escapeHTML(l.name)}</strong><div style="font-size:12px;color:#64748b">${escapeHTML(l.source || "")}</div></td>
+          <td>${escapeHTML(l.email || "")}</td>
+          <td>${escapeHTML(l.phone || "")}</td>
+          <td>${escapeHTML(l.stage || "novo")}</td>
+          <td style="font-size:12px;color:#64748b">${formatDate(l.created_at)}</td>
+        </tr>`;
+    });
+
+    tbody.innerHTML = rows.join("") || `<tr><td colspan="5" style="text-align:center;color:#64748b;padding:22px;">Nenhum lead ainda.</td></tr>`;
+  }
+
+  function renderRecentLeads() {
+    const tbody = document.getElementById("recentLeadsTbody");
+    if (!tbody) return;
+
+    const top = State.leads.slice(0, 5);
+    const rows = top.map((l) => `
+      <tr>
+        <td><strong>${escapeHTML(l.name)}</strong><div style="font-size:12px;color:#64748b">${escapeHTML(l.interest || "")}</div></td>
+        <td>${escapeHTML(l.phone || "")}</td>
+        <td>${escapeHTML(l.stage || "novo")}</td>
+      </tr>`);
+
+    tbody.innerHTML = rows.join("") || `<tr><td colspan="3" style="text-align:center;color:#64748b;padding:18px;">Sem leads.</td></tr>`;
+  }
+
+  function renderSitePreview() {
+    // IDs identificados no HTML: siteHeroTitle, siteHeroSub, siteLogoText, etc.
+    const title = State.site.heroTitle || "Seu site imobiliário, do seu jeito";
+    const sub = State.site.heroSub || "Crie, publique e gerencie seus imóveis em minutos.";
+    safeSetText("siteHeroTitle", title);
+    safeSetText("siteHeroTitle2", title);
+    safeSetText("siteHeroSub", sub);
+    safeSetText("siteHeroSub2", sub);
+
+    const logoText = (State.site.siteName || State.tenantName || "Seu Site").trim();
+    safeSetText("siteLogoText", logoText);
+    safeSetText("siteLogoText2", logoText);
+
+    // cards de imóveis no preview (se existir)
+    const cards = document.getElementById("siteCards");
+    if (cards) {
+      const preview = State.properties.slice(0, 6).map((p) => `
+        <div class="site-card">
+          <div class="site-card-img" style="background-image:url('${(p.photos && p.photos[0]) ? p.photos[0] : ""}')"></div>
+          <div class="site-card-body">
+            <div class="site-card-title">${escapeHTML(p.title)}</div>
+            <div class="site-card-price">${formatMoneyBRL(p.price)}</div>
+            <div class="site-card-meta">${escapeHTML(p.city || "")}</div>
+          </div>
+        </div>
+      `).join("");
+
+      cards.innerHTML = preview || `<div style="color:#64748b;padding:16px;">Seu site ainda não tem imóveis. Cadastre o primeiro para ver aqui.</div>`;
+    }
+  }
+
+  function escapeHTML(str) {
+    return String(str || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function render() {
+    applyTheme();
+    renderMetrics();
+    renderPropertiesTable();
+    renderLeadsTable();
+    renderRecentLeads();
+    renderSitePreview();
+  }
+
+  // -----------------------------
+  // API exposta para o script module (auth)
+  // -----------------------------
+  window.App = window.App || {};
+  window.App.initAfterAuth = async function initAfterAuth({ userId, tenantId, tenantSlug, tenantName, role }) {
+    State.userId = userId;
+    State.tenantId = tenantId;
+    State.tenantSlug = tenantSlug || null;
+    State.tenantName = tenantName || null;
+    State.role = role || null;
+
+    loadLocalPrefs();
+    applyStateToForm();
+    applyTheme();
+    await loadFromSupabase();
+    // default view
+    if (document.getElementById("view-site")) window.switchView("site");
+    else render();
+  };
+
+  // Render inicial (zerado) para não ficar vazio antes do auth
+  loadLocalPrefs();
+  applyStateToForm();
+  render();
+})();
+</script>
+
+<script type="module">
+  import { supabase } from "/shared/config/supabase.js";
+
+  // expõe para o script principal
+  window.supabase = supabase;
+
+  async function requireRole(role) {
+    const { data: { user }, error: userErr } = await supabase.auth.getUser();
+
+    if (userErr) console.warn(userErr);
+    if (!user) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role, tenant_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (error || !profile?.tenant_id) {
+      console.error(error);
+      window.location.href = "/login";
+      return;
+    }
+
+    if (profile.role !== role) {
+      window.location.href = "/login";
+      return;
+    }
+
+    // busca tenant (nome/slug) para abrir o site público corretamente
+    const { data: tenant } = await supabase
+      .from("tenants")
+      .select("name, slug")
+      .eq("id", profile.tenant_id)
+      .single();
+
+    const payload = {
+      userId: user.id,
+      tenantId: profile.tenant_id,
+      tenantSlug: tenant?.slug || null,
+      tenantName: tenant?.name || null,
+      role: profile.role,
+    };
+
+    if (window.App && typeof window.App.initAfterAuth === "function") {
+      await window.App.initAfterAuth(payload);
+    } else {
+      // fallback
+      window.__TENANT_ID__ = profile.tenant_id;
+      window.__USER_ID__ = user.id;
+    }
+  }
+
+  requireRole("corretor");
+// ==========================
+// BILLING (Mercado Pago)
+// ==========================
+async function loadBillingStatus(){
+  try{
+    const { data: { user } } = await supabase.auth.getUser();
+    if(!user){ 
+      document.getElementById("billingStatus").innerText = "Faça login para ver sua assinatura.";
+      return;
+    }
+    const { data: prof } = await supabase.from("profiles").select("tenant_id").eq("user_id", user.id).single();
+    const { data: tenant } = await supabase.from("tenants").select("plan, trial_end, active").eq("id", prof.tenant_id).single();
+    const { data: subs } = await supabase.from("subscriptions").select("*").eq("tenant_id", prof.tenant_id).order("created_at", { ascending:false }).limit(1).single();
+
+    const parts = [];
+    if(tenant){
+      parts.push(`Plano: ${tenant.plan || 'trial'}`);
+      if(tenant.trial_end) parts.push(`Trial até: ${new Date(tenant.trial_end).toLocaleString('pt-BR')}`);
+      parts.push(`Ativo: ${tenant.active ? 'sim' : 'não'}`);
+    }
+    if(subs){
+      parts.push(`Assinatura: ${subs.status} (${subs.mp_status || '-'})`);
+    } else {
+      parts.push("Assinatura: não iniciada");
+    }
+    document.getElementById("billingStatus").innerText = parts.join(" • ");
+  }catch(e){
+    document.getElementById("billingStatus").innerText = "Não foi possível carregar o status.";
+  }
+}
+
+async function startSubscription(plan){
+  const msg = document.getElementById("billingMsg");
+  msg.innerText = "Gerando link de assinatura...";
+  try{
+    const { data: { session } } = await supabase.auth.getSession();
+    if(!session?.access_token){
+      msg.innerText = "Sessão inválida. Faça login novamente.";
+      return;
+    }
+    const r = await fetch("/api/mp/create-subscription", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "authorization": `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({ plan })
+    });
+    const j = await r.json();
+    if(!r.ok){
+      msg.innerText = "Erro ao criar assinatura. Veja console.";
+      console.error(j);
+      return;
+    }
+    const url = j.init_point || j.sandbox_init_point;
+    if(url){
+      msg.innerText = "Redirecionando para o checkout...";
+      window.location.href = url;
+    }else{
+      msg.innerText = "Assinatura criada, mas sem link de checkout. Verifique o retorno do Mercado Pago.";
+      console.log(j);
+    }
+  }catch(e){
+    console.error(e);
+    msg.innerText = "Falha ao iniciar assinatura.";
+  }
+}
+
+// Hook: quando abrir a view billing, carregue status
+const __oldSwitchView = window.switchView;
+window.switchView = function(view){
+  if(typeof __oldSwitchView === "function") __oldSwitchView(view);
+  if(view === "billing") loadBillingStatus();
+}
+
+</script>
+
+</body>
+</html>
