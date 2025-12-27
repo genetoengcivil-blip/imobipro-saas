@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | ImobiPro</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- (seu CSS permanece igual) -->
+</head>
+
+<body>
+
+<div class="login-container">
+  <!-- LEFT -->
+  <div class="login-left">
+    <div class="logo">
+      <i class="fas fa-home"></i> Imobi<span>Pro</span>
+    </div>
+
+    <h1>Bem-vindo de volta</h1>
+    <p class="subtitle">Acesse sua conta ImobiPro</p>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+      </div>
+
+      <button id="btnLogin" class="login-btn" type="submit">
+        <i class="fas fa-sign-in-alt"></i> Entrar
+      </button>
+    </form>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="login-right">
+    <!-- permanece igual -->
+  </div>
+</div>
+
+<script type="module">
+  import { supabase } from "/shared/config/supabase.js";
+
+  const form = document.getElementById("loginForm");
+  const errorBox = document.getElementById("errorMessage");
+  const btn = document.getElementById("btnLogin");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    errorBox.style.display = "none";
+    btn.disabled = true;
+    btn.innerHTML = "Entrando...";
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      errorBox.textContent = error.message;
+      errorBox.style.display = "block";
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+      return;
+    }
+
+    // 🔑 CORREÇÃO CRÍTICA AQUI
+    const { data: profile, error: pe } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .single();
+
+    if (pe || !profile) {
+      errorBox.textContent = "Perfil não encontrado.";
+      errorBox.style.display = "block";
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+      return;
+    }
+
+    // 🚀 REDIRECT CORRETO
+    window.location.href =
+      profile.role === "admin"
+        ? "/crm-admin/"
+        : "/crm-corretor/";
+  });
+</script>
+
+</body>
+</html>
