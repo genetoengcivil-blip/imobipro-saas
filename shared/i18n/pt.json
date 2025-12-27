@@ -1,0 +1,11 @@
+{
+  "app.name": "IMOBIPRO",
+  "nav.dashboard": "Painel",
+  "nav.properties": "Imóveis",
+  "nav.leads": "Leads",
+  "nav.calendar": "Agenda",
+  "nav.tasks": "Tarefas",
+  "nav.reports": "Relatórios",
+  "auth.login": "Entrar",
+  "trial.banner": "Você está no Premium (trial) — {{days}} dias restantes"
+}
