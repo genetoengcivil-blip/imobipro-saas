@@ -1,0 +1,9 @@
+{
+  "routes": [
+    { "src": "^/$", "dest": "/index.html" },
+    { "src": "^/login/?$", "dest": "/login.html" },
+    { "src": "^/corretor/?$", "dest": "/apps/crm-corretor/index.html" },
+    { "src": "^/admin/?$", "dest": "/apps/crm-admin/index.html" },
+    { "src": "^/(.*)$", "dest": "/site/index.html" }
+  ]
+}
