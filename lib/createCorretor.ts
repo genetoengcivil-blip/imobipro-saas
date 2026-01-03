@@ -1,56 +1,60 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
-import crypto from "crypto";
+import { createClient } from "@/lib/supabase-admin";
+import { generateMagicLogin } from "@/lib/auth/generateMagicLogin";
+import { sendAccessEmail } from "@/lib/email/sendAccessEmail";
 
 type Plano = "basic" | "pro" | "premium";
 
 export async function createCorretor(email: string, plano: Plano) {
-  // 1️⃣ Verifica se já existe
-  const { data: existente } = await supabaseAdmin
-    .from("corretores")
-    .select("id, user_id")
-    .eq("email", email)
-    .maybeSingle();
+  const supabase = createClient();
+
+  // 1️⃣ Buscar usuário por email (Supabase v2)
+  const { data, error } = await supabase.auth.admin.listUsers({
+    email,
+    perPage: 1,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   let userId: string;
 
-  if (!existente) {
-    // 2️⃣ Cria usuário
-    const { data, error } =
-      await supabaseAdmin.auth.admin.createUser({
+  if (data.users.length > 0) {
+    userId = data.users[0].id;
+  } else {
+    // 2️⃣ Criar usuário
+    const { data: created, error: createError } =
+      await supabase.auth.admin.createUser({
         email,
         email_confirm: true,
       });
 
-    if (error || !data.user) {
-      throw new Error("Erro ao criar usuário");
+    if (createError || !created.user) {
+      throw new Error(createError?.message);
     }
 
-    userId = data.user.id;
+    userId = created.user.id;
+  }
 
-    // 3️⃣ Cria corretor
-    await supabaseAdmin.from("corretores").insert({
+  // 3️⃣ Salvar corretor
+  const { error: dbError } = await supabase
+    .from("corretores")
+    .upsert({
       user_id: userId,
       email,
       plano,
-      ativo: true,
+      status: "ativo",
     });
-  } else {
-    userId = existente.user_id;
+
+  if (dbError) {
+    throw new Error(dbError.message);
   }
 
-  // 4️⃣ Gera token temporário
-  const token = crypto.randomBytes(32).toString("hex");
+  // 4️⃣ Login mágico
+  const magicLink = await generateMagicLogin(email);
 
-  const expires = new Date();
-  expires.setMinutes(expires.getMinutes() + 10); // 10 min
+  // 5️⃣ Email
+  await sendAccessEmail(email, magicLink);
 
-  await supabaseAdmin.from("login_tokens").insert({
-    user_id: userId,
-    token,
-    expires_at: expires,
-  });
-
-  console.log("🔐 Token de login criado:", token);
-
-  return token;
+  return { ok: true };
 }
