@@ -1,70 +1,58 @@
 import { NextResponse } from "next/server";
-import mercadopago from "mercadopago";
-
-mercadopago.configure({
-  access_token: process.env.MERCADOPAGO_ACCESS_TOKEN!,
-});
-
-type Body = {
-  plano: "basico" | "profissional" | "premium";
-  user_id: string;
-  email: string;
-};
+import { MercadoPagoConfig, Preference } from "mercadopago";
 
 export async function POST(req: Request) {
   try {
-    const { plano, user_id, email } = (await req.json()) as Body;
+    const { plano } = await req.json();
 
-    if (!plano || !user_id || !email) {
-      return NextResponse.json(
-        { error: "Dados incompletos para checkout" },
-        { status: 400 }
-      );
+    const client = new MercadoPagoConfig({
+      accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN!,
+    });
+
+    const preference = new Preference(client);
+
+    let title = "";
+    let price = 0;
+
+    if (plano === "basic") {
+      title = "Plano BASIC - ImobiPro";
+      price = 97;
     }
 
-    // valores de exemplo (ajuste se necessário)
-    const prices: Record<string, number> = {
-      basico: 97,
-      profissional: 197,
-      premium: 397,
-    };
+    if (plano === "pro") {
+      title = "Plano PRO - ImobiPro";
+      price = 197;
+    }
 
-    const preference = {
-      items: [
-        {
-          id: plano,
-          title: `Plano ${plano}`,
-          quantity: 1,
-          currency_id: "BRL",
-          unit_price: prices[plano],
+    if (plano === "premium") {
+      title = "Plano PREMIUM - ImobiPro";
+      price = 397;
+    }
+
+    const response = await preference.create({
+      body: {
+        items: [
+          {
+            title,
+            quantity: 1,
+            unit_price: price,
+            currency_id: "BRL",
+          },
+        ],
+        back_urls: {
+          success: `${process.env.NEXT_PUBLIC_SITE_URL}/sucesso`,
+          failure: `${process.env.NEXT_PUBLIC_SITE_URL}/falha`,
+          pending: `${process.env.NEXT_PUBLIC_SITE_URL}/pendente`,
         },
-      ],
-      payer: {
-        email,
+        auto_return: "approved",
       },
-
-      // 🔑 ESSENCIAL PARA O WEBHOOK
-      external_reference: user_id,
-      metadata: {
-        email,
-        plano,
-      },
-
-      back_urls: {
-        success: "https://imobi-pro.com/checkout/sucesso",
-        failure: "https://imobi-pro.com/checkout/erro",
-        pending: "https://imobi-pro.com/checkout/pendente",
-      },
-      auto_return: "approved",
-    };
-
-    const mpRes = await mercadopago.preferences.create(preference);
+    });
 
     return NextResponse.json({
-      init_point: mpRes.body.init_point,
+      init_point: response.init_point,
     });
-  } catch (err) {
-    console.error("Erro checkout:", err);
+  } catch (error) {
+    console.error("Erro no checkout:", error);
     return NextResponse.json(
       { error: "Erro ao criar checkout" },
       { status: 500 }
