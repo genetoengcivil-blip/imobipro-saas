@@ -1,92 +1,49 @@
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // OBRIGATÓRIO (service role)
-);
+import { createClient } from "@/lib/supabase-admin";
+import { generateMagicLogin } from "@/lib/auth/generateMagicLogin";
+import { sendAccessEmail } from "@/lib/email/sendAccessEmail";
 
 type Plano = "basic" | "pro" | "premium";
 
-export async function createCorretor(
-  email: string,
-  plano: Plano,
-  nome?: string,
-  telefone?: string
-) {
-  /**
-   * 1️⃣ Verifica se o usuário já existe no Auth
-   */
-  const { data: existingUser } = await supabase.auth.admin.getUserByEmail(
-    email
-  );
+export async function createCorretor(email: string, plano: Plano) {
+  const supabase = createClient();
+
+  // Buscar usuário por email (Supabase v2)
+  const { data, error } = await supabase.auth.admin.listUsers({
+    email,
+    perPage: 1,
+  });
+
+  if (error) throw new Error(error.message);
 
   let userId: string;
 
-  if (existingUser?.user) {
-    userId = existingUser.user.id;
+  if (data.users.length > 0) {
+    userId = data.users[0].id;
   } else {
-    /**
-     * 2️⃣ Cria usuário no Auth com senha provisória
-     */
-    const tempPassword = Math.random().toString(36).slice(-10);
-
-    const { data: newUser, error: createAuthError } =
+    const { data: created, error: createError } =
       await supabase.auth.admin.createUser({
         email,
-        password: tempPassword,
         email_confirm: true,
       });
 
-    if (createAuthError || !newUser.user) {
-      throw new Error("Erro ao criar usuário no Auth");
+    if (createError || !created.user) {
+      throw new Error(createError?.message);
     }
 
-    userId = newUser.user.id;
+    userId = created.user.id;
   }
 
-  /**
-   * 3️⃣ Garante registro na tabela users
-   */
-  await supabase.from("users").upsert({
-    id: userId,
-    email,
-    role: "corretor",
-  });
-
-  /**
-   * 4️⃣ Cria ou garante corretor
-   */
-  await supabase.from("corretores").upsert({
+  const { error: dbError } = await supabase.from("corretores").upsert({
     user_id: userId,
-    nome: nome ?? null,
-    telefone: telefone ?? null,
+    email,
+    plano,
     status: "ativo",
   });
 
-  /**
-   * 5️⃣ Define TRIAL Premium (7 dias)
-   */
-  const trialAte = new Date();
-  trialAte.setDate(trialAte.getDate() + 7);
+  if (dbError) throw new Error(dbError.message);
 
-  /**
-   * 6️⃣ Cria ou atualiza assinatura
-   */
-  await supabase.from("assinaturas").upsert({
-    user_id: userId,
-    plano_base: plano,
-    plano_atual: "premium",
-    status: "ativa",
-    trial_premium_ate: trialAte.toISOString(),
-  });
+  const magicLink = await generateMagicLogin(email);
+  await sendAccessEmail(email, magicLink);
 
-  /**
-   * 7️⃣ Retorno estratégico
-   */
-  return {
-    userId,
-    email,
-    plano,
-    trialAte,
-  };
+  return { ok: true };
 }
