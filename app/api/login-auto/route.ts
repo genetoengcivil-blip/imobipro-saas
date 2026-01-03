@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     );
   }
 
-  const supabase = createClient();
+  const supabase = supabaseAdmin;
 
   // 1. Validar token
   const { data: tokenData } = await supabase
