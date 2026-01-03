@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Pagamento Aprovado - ImobiPro</title>
+    <script src="/env.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .success-icon {
+            color: #25D366;
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1a3a5f;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #1a3a5f;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .details {
+            text-align: left;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✅</div>
+        <h1>Pagamento Aprovado!</h1>
+        <p>Sua assinatura foi ativada com sucesso.</p>
+        
+        <div class="details">
+            <p><strong>Plano:</strong> <span id="plan">Carregando...</span></p>
+            <p><strong>Email:</strong> <span id="email">Carregando...</span></p>
+            <p><strong>Nome:</strong> <span id="name">Carregando...</span></p>
+            <p><strong>Status:</strong> <span style="color: green;">✅ Ativo</span></p>
+        </div>
+        
+        <a href="/login.html" class="btn">🔐 Ir para o Login</a>
+    </div>
+    
+    
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const plan = urlParams.get('plan') || 'profissional';
+      const email = urlParams.get('email') || '';
+      const name = urlParams.get('name') || '';
+
+      document.getElementById('plan').textContent = plan;
+      document.getElementById('email').textContent = email || '—';
+      document.getElementById('name').textContent = name || '—';
+
+      // Criação de conta + estrutura (Supabase) — modo teste/simulação
+      async function finalizeSignup() {
+        try {
+          const ENV = window.ENV || {};
+          if (!ENV.SUPABASE_URL || !ENV.SUPABASE_ANON_KEY || ENV.SUPABASE_URL.includes('SEU-PROJETO')) {
+            throw new Error('Configure SUPABASE_URL e SUPABASE_ANON_KEY no arquivo env.js antes de testar.');
+          }
+
+          const sb = window.supabase.createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
+
+          const signupRaw = localStorage.getItem('imobipro_signup_data');
+          if (!signupRaw) {
+            // Sem dados locais (ex.: usuário abriu link direto). Direciona para login.
+            window.location.href = '/login.html';
+            return;
+          }
+          const signup = JSON.parse(signupRaw);
+          const password = signup.password;
+
+          if (!signup.email || !password) throw new Error('Dados de cadastro incompletos. Volte ao checkout e tente novamente.');
+
+          // 1) Criar usuário no Supabase Auth (se já existir, faz login)
+          let authUserId = null;
+
+          // Tentativa de cadastro
+          let { data: signUpData, error: signUpErr } = await sb.auth.signUp({
+            email: signup.email,
+            password
+          });
+
+          if (signUpErr) {
+            // Se já existe, tenta login
+            const { data: signInData, error: signInErr } = await sb.auth.signInWithPassword({
+              email: signup.email,
+              password
+            });
+            if (signInErr) throw new Error('Não foi possível autenticar. Verifique e-mail/senha e as configurações do Supabase Auth.');
+            authUserId = signInData?.user?.id || signInData?.session?.user?.id;
+          } else {
+            authUserId = signUpData?.user?.id;
+          }
+
+          if (!authUserId) throw new Error('Falha ao obter user_id do Supabase Auth.');
+
+          // 2) Tenant (empresa/corretor) — slug a partir do email
+          const slugBase = (signup.email.split('@')[0] || 'cliente')
+            .toLowerCase()
+            .replace(/[^a-z0-9\-_.]/g, '-')
+            .replace(/-+/g, '-')
+            .slice(0, 30);
+
+          // Garantir unicidade simples
+          const slug = `${slugBase}-${authUserId.slice(0, 6)}`;
+
+          const { data: tenant, error: tenantErr } = await sb
+            .from('tenants')
+            .insert([{ name: signup.name || name || 'Cliente', slug }])
+            .select()
+            .single();
+
+          if (tenantErr) {
+            // Se já existe (retry), tenta buscar pelo slug
+            const { data: existingTenant } = await sb
+              .from('tenants')
+              .select('*')
+              .eq('slug', slug)
+              .maybeSingle();
+            if (!existingTenant) throw tenantErr;
+            tenant = existingTenant;
+          }
+
+          // 3) Profile — vincula auth user ao tenant
+          const { error: profErr } = await sb
+            .from('profiles')
+            .upsert({
+              user_id: authUserId,
+              email: signup.email,
+              name: signup.name || name || null,
+              role: 'corretor',
+              tenant_id: tenant.id
+            }, { onConflict: 'user_id' });
+
+          if (profErr) throw profErr;
+
+          // 4) Subscription (trial 7 dias por padrão em simulação)
+          const trialDays = 7;
+          const trialEnd = new Date(Date.now() + trialDays * 86400000).toISOString();
+
+          const { error: subErr } = await sb
+            .from('subscriptions')
+            .upsert({
+              tenant_id: tenant.id,
+              plan,
+              status: 'active',
+              trial_end: trialEnd,
+              payer_email: signup.email,
+              provider_subscription_id: 'SIMULATED'
+            }, { onConflict: 'tenant_id' });
+
+          if (subErr) throw subErr;
+
+          // Limpar dados sensíveis locais
+          localStorage.removeItem('imobipro_signup_data');
+          localStorage.setItem('imobipro_last_email', signup.email);
+
+          // ✅ Direciona para login (como fluxo real)
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 800);
+
+        } catch (e) {
+          console.error(e);
+          const msg = (e && e.message) ? e.message : 'Erro ao finalizar cadastro.';
+          const detailsBox = document.querySelector('.details');
+          if (detailsBox) {
+            const p = document.createElement('p');
+            p.style.color = '#b91c1c';
+            p.innerHTML = `<strong>Erro:</strong> ${msg}`;
+            detailsBox.appendChild(p);
+          }
+        }
+      }
+
+      finalizeSignup();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imobi Pro Imóveis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #1a3a5f;
+            --secondary: #2c5282;
+            --accent: #25D366;
+            --light: #f8f9fa;
+            --dark: #333;
+            --gray: #6c757d;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* WhatsApp Flutuante */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--accent);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .whatsapp-float:hover {
+            background-color: #128C7E;
+            transform: scale(1.1);
+        }
+
+        /* Header */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .top-bar {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .contact-info span {
+            margin-right: 20px;
+            font-size: 14px;
+        }
+
+        .contact-info i {
+            margin-right: 5px;
+        }
+
+        .social-icons a {
+            color: white;
+            margin-left: 15px;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+
+        .social-icons a:hover {
+            color: var(--accent);
+        }
+
+        .main-header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-left: 10px;
+        }
+
+        .logo span {
+            color: var(--secondary);
+            font-weight: 300;
+        }
+
+        .logo-img {
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav li {
+            margin-left: 30px;
+        }
+
+        nav a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: 0.3s;
+            padding: 5px 0;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        nav a.active {
+            color: var(--primary);
+        }
+
+        nav a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        .cta-button {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .cta-button:hover {
+            background-color: var(--secondary);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 58, 95, 0.8), rgba(44, 82, 130, 0.9)), url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 0 20px;
+        }
+
+        .hero-content h2 {
+            font-size: 3.2rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            max-width: 700px;
+        }
+
+        .search-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            max-width: 1000px;
+            margin: -50px auto 50px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-container h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #f9f9f9;
+        }
+
+        .search-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background-color: var(--secondary);
+        }
+
+        /* Seção de Imóveis */
+        .properties {
+            padding: 80px 40px;
+            background-color: white;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title h2 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .section-title p {
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .properties-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .property-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .property-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .property-image {
+            height: 220px;
+            width: 100%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .property-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .property-price {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .property-info {
+            padding: 25px;
+        }
+
+        .property-info h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .property-location {
+            color: var(--gray);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .property-features {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .feature {
+            text-align: center;
+        }
+
+        .feature i {
+            color: var(--primary);
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .feature span {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .property-btn {
+            display: block;
+            text-align: center;
+            background-color: var(--light);
+            color: var(--primary);
+            padding: 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .property-btn:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .view-all {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .view-all a {
+            background-color: transparent;
+            color: var(--primary);
+            padding: 12px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 2px solid var(--primary);
+            transition: 0.3s;
+        }
+
+        .view-all a:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Modal de Detalhes do Imóvel */
+        .property-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            max-width: 1200px;
+            margin: 40px auto;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 100;
+            transition: 0.3s;
+        }
+
+        .close-modal:hover {
+            background-color: var(--primary);
+            transform: rotate(90deg);
+        }
+
+        /* Galeria de Imagens */
+        .property-gallery {
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+        }
+
+        .swiper {
+            width: 100%;
+            height: 100%;
+        }
+
+        .swiper-slide {
+            background-size: cover;
+            background-position: center;
+        }
+
+        .swiper-button-next, .swiper-button-prev {
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+        }
+
+        .swiper-button-next:after, .swiper-button-prev:after {
+            font-size: 24px;
+        }
+
+        .property-details-content {
+            padding: 40px;
+        }
+
+        .property-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .property-title h2 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .property-code-badge {
+            display: inline-block;
+            background-color: #e9ecef;
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 15px;
+            border: 1px solid #dee2e6;
+        }
+
+        .property-price-large {
+            font-size: 2rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .property-type-badge {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .property-location-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gray);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .property-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+            padding: 25px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .highlight-item {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .highlight-item i {
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .highlight-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: block;
+        }
+
+        .highlight-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .property-description {
+            margin-bottom: 40px;
+        }
+
+        .property-description h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .property-description p {
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .property-features-list {
+            margin-bottom: 40px;
+        }
+
+        .property-features-list h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .feature-item i {
+            color: var(--primary);
+        }
+
+        .contact-agent {
+            background-color: #f0f4f8;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 40px;
+        }
+
+        .contact-agent h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .agent-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .agent-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .agent-details h4 {
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .agent-details p {
+            color: var(--gray);
+        }
+
+        .contact-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .contact-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .contact-btn.whatsapp {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .contact-btn.whatsapp:hover {
+            background-color: #128C7E;
+        }
+
+        .contact-btn.phone {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .contact-btn.phone:hover {
+            background-color: var(--secondary);
+        }
+
+        .contact-btn.message {
+            background-color: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .contact-btn.message:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Modal de Confirmação */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease-out;
+            margin: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .confirmation-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+        }
+
+        .confirmation-content h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .confirmation-content p {
+            color: var(--gray);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .confirmation-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .confirmation-details p {
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .confirmation-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .confirmation-btn:hover {
+            background-color: var(--secondary);
+        }
+
+        /* Seção de Serviços */
+        .services {
+            padding: 80px 40px;
+            background-color: #f0f4f8;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .service-card {
+            background-color: white;
+            padding: 40px 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(26, 58, 95, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--primary);
+            font-size: 32px;
+        }
+
+        .service-card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        /* Seção de Contato */
+        .contact {
+            padding: 80px 40px;
+            background-color: white;
+        }
+
+        .contact-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 50px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .contact-info h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .contact-detail {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .contact-detail i {
+            color: var(--primary);
+            font-size: 20px;
+            margin-right: 15px;
+            margin-top: 5px;
+        }
+
+        .contact-form input,
+        .contact-form textarea,
+        .contact-form select {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .contact-form textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--secondary);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 60px 40px 30px;
+        }
+
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-logo h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .footer-links h4,
+        .footer-newsletter h4 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+
+        .newsletter-form {
+            display: flex;
+            margin-top: 15px;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px 0 0 5px;
+        }
+
+        .newsletter-form button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 40px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            color: #ddd;
+        }
+
+        /* Responsividade */
+        @media (max-width: 992px) {
+            .main-header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            nav li {
+                margin: 0 10px;
+            }
+            
+            .property-gallery {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .hero-content h2 {
+                font-size: 2.5rem;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .properties, .services, .contact {
+                padding: 60px 20px;
+            }
+            
+            .property-header {
+                flex-direction: column;
+            }
+            
+            .property-gallery {
+                height: 300px;
+            }
+            
+            .contact-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- WhatsApp Flutuante -->
+    <a href="#" class="whatsapp-float" target="_blank" id="whatsappFloat">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Header -->
+    <header>
+        <div class="top-bar">
+            <div class="contact-info" id="headerContactInfo">
+                <span><i class="fas fa-phone"></i> Carregando...</span>
+                <span><i class="fas fa-envelope"></i> Carregando...</span>
+            </div>
+            <div class="social-icons">
+                <a href="#" id="facebookLink"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" id="instagramLink"><i class="fab fa-instagram"></i></a>
+                <a href="#" id="linkedinLink"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+        
+        <div class="main-header">
+            <a href="#" class="logo" id="logo-link">
+                <div class="logo-img" id="logoInitials">IP</div>
+                <h1 id="siteName">Imobi<span>Pro</span></h1>
+            </a>
+            
+            <nav>
+                <ul>
+                    <li><a href="#" class="active" id="nav-inicio">Início</a></li>
+                    <li><a href="#imoveis" id="nav-imoveis">Imóveis</a></li>
+                    <li><a href="#servicos" id="nav-servicos">Serviços</a></li>
+                    <li><a href="#contato" id="nav-contato">Contato</a></li>
+                </ul>
+            </nav>
+            
+            <a href="#contato" class="cta-button" id="ctaButton">Fale Conosco</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="heroSection">
+        <div class="hero-content">
+            <h2 id="heroTitle">Encontre o imóvel dos seus sonhos</h2>
+            <p id="heroSubtitle">Mais de 1.000 imóveis disponíveis para compra, venda e locação nas melhores localizações</p>
+        </div>
+    </section>
+
+    <!-- Busca de Imóveis -->
+    <div class="search-container">
+        <h3>Busque seu imóvel ideal</h3>
+        <form class="search-form" id="searchForm">
+            <div class="form-group">
+                <label for="cidade">Cidade</label>
+                <input type="text" id="cidade" placeholder="Onde procura?">
+            </div>
+            <div class="form-group">
+                <label for="tipo">Tipo de Imóvel</label>
+                <select id="tipo">
+                    <option>Todos os tipos</option>
+                    <option>Apartamento</option>
+                    <option>Casa</option>
+                    <option>Apartamento Duplex</option>
+                    <option>Cobertura</option>
+                    <option>Comercial</option>
+                    <option>Terreno</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="finalidade">Finalidade</label>
+                <select id="finalidade">
+                    <option>Compra ou Aluguel</option>
+                    <option>Compra</option>
+                    <option>Aluguel</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="quartos">Quartos</label>
+                <select id="quartos">
+                    <option>Qualquer</option>
+                    <option>1 Quarto</option>
+                    <option>2 Quartos</option>
+                    <option>3 Quartos</option>
+                    <option>4+ Quartos</option>
+                </select>
+            </div>
+            <button type="submit" class="search-btn">
+                <i class="fas fa-search"></i> Buscar Imóveis
+            </button>
+        </form>
+    </div>
+
+    <!-- Imóveis em Destaque -->
+    <section class="properties" id="imoveis">
+        <div class="section-title">
+            <h2>Imóveis em Destaque</h2>
+            <p id="propertiesSubtitle">Confira nossas melhores oportunidades do mercado imobiliário</p>
+        </div>
+        
+        <div class="properties-grid" id="propertiesGrid">
+            <!-- Imóveis serão carregados via JavaScript -->
+        </div>
+        
+        <div class="view-all">
+            <a href="#" id="viewAllBtn">Ver Todos os Imóveis</a>
+        </div>
+    </section>
+
+    <!-- Modal de Detalhes do Imóvel -->
+    <div class="property-modal" id="propertyModal">
+        <div class="modal-content">
+            <div class="close-modal" id="closePropertyModal">&times;</div>
+            
+            <div class="property-gallery">
+                <div class="swiper propertySwiper">
+                    <div class="swiper-wrapper" id="propertySwiperWrapper">
+                        <!-- Fotos serão adicionadas via JavaScript -->
+                    </div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                </div>
+            </div>
+            
+            <div class="property-details-content">
+                <div class="property-header">
+                    <div class="property-title">
+                        <h2 id="modalPropertyTitle">Carregando...</h2>
+                        <div class="property-code-badge" id="modalPropertyCode">CÓD: ...</div>
+                        <div class="property-location-detail">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="modalPropertyLocation">Carregando...</span>
+                        </div>
+                    </div>
+                    <div class="property-pricing">
+                        <div class="property-price-large" id="modalPropertyPrice">Carregando...</div>
+                        <div class="property-type-badge" id="modalPropertyType">Carregando</div>
+                    </div>
+                </div>
+                
+                <div class="property-highlights" id="modalPropertyHighlights">
+                    <!-- Destaques serão adicionadas via JavaScript -->
+                </div>
+                
+                <div class="property-description">
+                    <h3>Descrição do Imóvel</h3>
+                    <p id="modalPropertyDescription">Carregando descrição...</p>
+                </div>
+                
+                <div class="property-features-list">
+                    <h3>Características do Imóvel</h3>
+                    <div class="features-grid" id="modalPropertyFeatures">
+                        <!-- Características serão adicionadas via JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="contact-agent">
+                    <h3>Entre em Contato com o Corretor</h3>
+                    <div class="agent-info">
+                        <div class="agent-avatar" id="agentAvatar">CR</div>
+                        <div class="agent-details">
+                            <h4 id="agentName">Carregando...</h4>
+                            <p id="agentSpecialty">Carregando...</p>
+                            <p><i class="fas fa-star"></i> <i class="fas fa-star"></i> <i class="fas fa-star"></i> <i class="fas fa-star"></i> <i class="fas fa-star-half-alt"></i> <span id="agentRating">Carregando...</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-buttons">
+                        <a href="#" class="contact-btn whatsapp" id="whatsappLink">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </a>
+                        <a href="#" class="contact-btn phone" id="phoneLink">
+                            <i class="fas fa-phone"></i> Ligar Agora
+                        </a>
+                        <a href="#contato" class="contact-btn message" id="messageLink">
+                            <i class="fas fa-envelope"></i> Enviar Mensagem
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Envio -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <div class="confirmation-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3>Mensagem Enviada com Sucesso!</h3>
+            <p>Sua mensagem foi registrada em nosso sistema CRM e nossa equipe entrará em contato em até 24 horas.</p>
+            
+            <div class="confirmation-details" id="confirmationDetails">
+                <!-- Detalhes da mensagem serão preenchidos via JavaScript -->
+            </div>
+            
+            <button class="confirmation-btn" id="closeConfirmationBtn">Entendido</button>
+        </div>
+    </div>
+
+    <!-- Serviços -->
+    <section class="services" id="servicos">
+        <div class="section-title">
+            <h2>Nossos Serviços Premium</h2>
+            <p>Oferecemos uma experiência completa no mercado imobiliário</p>
+        </div>
+        
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h3>Compra e Venda</h3>
+                <p>Assessoria completa na compra ou venda do seu imóvel com segurança e transparência.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-file-contract"></i>
+                </div>
+                <h3>Aluguel</h3>
+                <p>Gestão completa de locação, da seleção do inquilino à manutenção do imóvel.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Avaliação de Imóveis</h3>
+                <p>Avaliação profissional baseada em análise de mercado e tendências.</p>
+            </div>
+            
+            <div class="service-card">
+                <div class="service-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>Consultoria Personalizada</h3>
+                <p>Consultoria especializada para investidores e primeira compra.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contato -->
+    <section class="contact" id="contato">
+        <div class="section-title">
+            <h2>Entre em Contato</h2>
+            <p>Estamos prontos para te ajudar a encontrar o imóvel perfeito</p>
+        </div>
+        
+        <div class="contact-container">
+            <div class="contact-info">
+                <h3>Fale Conosco</h3>
+                <p>Tem dúvidas ou precisa de ajuda? Entre em contato com nossa equipe especializada.</p>
+                
+                <div class="contact-detail">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <h4>Endereço</h4>
+                        <p id="contactAddress">Carregando...</p>
+                    </div>
+                </div>
+                
+                <div class="contact-detail">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <h4>Telefone</h4>
+                        <p id="contactPhoneNumber">Carregando...</p>
+                    </div>
+                </div>
+                
+                <div class="contact-detail">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <h4>E-mail</h4>
+                        <p id="contactEmail">Carregando...</p>
+                    </div>
+                </div>
+                
+                <div class="contact-detail">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <h4>Horário de Atendimento</h4>
+                        <p id="contactHours">Carregando...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contact-form">
+                <form id="contactForm">
+                    <input type="text" id="contactName" placeholder="Seu Nome" required>
+                    <input type="email" id="contactEmailInput" placeholder="Seu E-mail" required>
+                    <input type="tel" id="contactPhoneInput" placeholder="Seu Telefone (com DDD)">
+                    <select id="contactSubject" required>
+                        <option value="" disabled selected>Assunto</option>
+                        <option value="Compra de Imóvel">Compra de Imóvel</option>
+                        <option value="Venda de Imóvel">Venda de Imóvel</option>
+                        <option value="Aluguel">Aluguel</option>
+                        <option value="Avaliação de Imóvel">Avaliação de Imóvel</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                    <input type="text" id="propertyCode" placeholder="Código do Imóvel (opcional)">
+                    <textarea id="contactMessage" placeholder="Sua Mensagem" required></textarea>
+                    <button type="submit" class="submit-btn">Enviar Mensagem</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-logo">
+                <h3 id="footerName">Imobi Pro</h3>
+                <p>Sua imobiliária de confiança para encontrar o lar perfeito.</p>
+                <p>Integrado com CRM ImobiPro para melhor atendimento.</p>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Links Rápidos</h4>
+                <ul>
+                    <li><a href="#" onclick="handleNavClick('inicio')">Início</a></li>
+                    <li><a href="#imoveis" onclick="handleNavClick('imoveis')">Imóveis</a></li>
+                    <li><a href="#servicos" onclick="handleNavClick('servicos')">Serviços</a></li>
+                    <li><a href="#contato" onclick="handleNavClick('contato')">Contato</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Tipos de Imóveis</h4>
+                <ul>
+                    <li><a href="#">Apartamentos</a></li>
+                    <li><a href="#">Casas</a></li>
+                    <li><a href="#">Comercial</a></li>
+                    <li><a href="#">Terrenos</a></li>
+                    <li><a href="#">Lançamentos</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-newsletter">
+                <h4>Newsletter</h4>
+                <p>Inscreva-se para receber nossas novidades e ofertas exclusivas.</p>
+                <div class="newsletter-form">
+                    <input type="email" id="newsletterEmail" placeholder="Seu e-mail">
+                    <button type="button" id="newsletterBtn"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; <span id="currentYear">2023</span> <span id="copyrightName">Imobi Pro Imóveis</span>. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Bibliotecas Externas -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+
+    <script>
+        // ============================================
+        // CONFIGURAÇÃO DO SISTEMA MULTI-CORRETOR
+        // ============================================
+        
+        // 1. Identificar qual corretor está acessando
+        function getCorretorSlug() {
+            // Opção 1: Via parâmetro na URL (ex: ?corretor=joaosilva)
+            const urlParams = new URLSearchParams(window.location.search);
+            let slug = urlParams.get('corretor');
+            
+            if (slug) return slug;
+            
+            // Opção 2: Via subdomínio (ex: joaosilva.seusite.com)
+            const hostname = window.location.hostname;
+            const parts = hostname.split('.');
+            if (parts.length > 2) {
+                slug = parts[0];
+                return slug;
+            }
+            
+            // Opção 3: Primeira parte do caminho (ex: seusite.com/joaosilva)
+            const path = window.location.pathname;
+            const pathParts = path.split('/').filter(p => p);
+            if (pathParts.length > 0) {
+                slug = pathParts[0];
+                return slug;
+            }
+            
+            // Default para demonstração
+            return 'demo';
+        }
+        
+        // 2. Banco de dados de corretores (em produção, isso viria de uma API)
+        const corretoresDatabase = {
+            'joaosilva': {
+                id: 1,
+                slug: 'joaosilva',
+                nome: 'João Silva',
+                nomeSite: 'João Silva Imóveis',
+                telefone: '+55 (11) 99999-9999',
+                whatsapp: '5511999999999',
+                email: 'joao@imoveis.com',
+                endereco: 'Av. Paulista, 1000 - São Paulo, SP',
+                cores: {
+                    primaria: '#1a3a5f',
+                    secundaria: '#2c5282'
+                },
+                logoIniciais: 'JS',
+                hero: {
+                    titulo: 'Encontre seu imóvel dos sonhos em São Paulo',
+                    subtitulo: 'Especialista em imóveis de alto padrão na região'
+                },
+                agente: {
+                    nome: 'João Silva',
+                    especialidade: 'Corretor especializado em imóveis de luxo',
+                    avaliacao: '4.9 (87 avaliações)'
+                },
+                imoveis: [1, 2, 3] // IDs dos imóveis deste corretor
+            },
+            'mariasantos': {
+                id: 2,
+                slug: 'mariasantos',
+                nome: 'Maria Santos',
+                nomeSite: 'Maria Santos Imobiliária',
+                telefone: '+55 (21) 98888-8888',
+                whatsapp: '5521988888888',
+                email: 'maria@imoveis.com',
+                endereco: 'Av. Atlântica, 200 - Rio de Janeiro, RJ',
+                cores: {
+                    primaria: '#2c3e50',
+                    secundaria: '#3498db'
+                },
+                logoIniciais: 'MS',
+                hero: {
+                    titulo: 'Imóveis com vista para o mar no Rio de Janeiro',
+                    subtitulo: 'As melhores oportunidades imobiliárias da cidade'
+                },
+                agente: {
+                    nome: 'Maria Santos',
+                    especialidade: 'Especialista em imóveis à beira-mar',
+                    avaliacao: '4.8 (65 avaliações)'
+                },
+                imoveis: [2, 3] // IDs dos imóveis deste corretor
+            },
+            'demo': {
+                id: 3,
+                slug: 'demo',
+                nome: 'Demo Corretor',
+                nomeSite: 'Imobi Pro Imóveis',
+                telefone: '+55 (11) 95999-9999',
+                whatsapp: '5511959999999',
+                email: 'contato@imobipro.com.br',
+                endereco: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
+                cores: {
+                    primaria: '#1a3a5f',
+                    secundaria: '#2c5282'
+                },
+                logoIniciais: 'IP',
+                hero: {
+                    titulo: 'Encontre o imóvel dos seus sonhos',
+                    subtitulo: 'Mais de 1.000 imóveis disponíveis para compra, venda e locação'
+                },
+                agente: {
+                    nome: 'Carlos Rodrigues',
+                    especialidade: 'Corretor especializado em imóveis de luxo',
+                    avaliacao: '4.8 (125 avaliações)'
+                },
+                imoveis: [1, 2, 3] // Todos os imóveis para demo
+            }
+        };
+        
+        // 3. Banco de dados de imóveis (em produção, isso viria de uma API)
+        const imoveisDatabase = {
+            1: {
+                id: 1,
+                code: "IMP001",
+                title: "Apartamento Luxuoso na Paulista",
+                location: "Avenida Paulista, 1000 - São Paulo, SP",
+                price: "R$ 1.250.000",
+                type: "Venda",
+                bedrooms: 3,
+                bathrooms: 2,
+                area: "120m²",
+                garage: 2,
+                year: 2020,
+                images: [
+                    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                    "https://images.unsplash.com/photo-1615529182904-14819c35db37?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                    "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                ],
+                description: "Apartamento luxuoso localizado no coração da Avenida Paulista, com acabamentos de alto padrão e vista panorâmica da cidade. Imóvel totalmente reformado com os melhores materiais do mercado.",
+                features: [
+                    "3 Suítes (1 master com closet)",
+                    "Sala ampla em dois ambientes",
+                    "Cozinha americana integrada",
+                    "Mobília planejada na cozinha",
+                    "Bancada em mármore",
+                    "Área de serviço completa",
+                    "2 vagas de garagem",
+                    "Piso porcelanato",
+                    "Armários embutidos",
+                    "Varanda gourmet"
+                ],
+                mainImage: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            },
+            2: {
+                id: 2,
+                code: "IMP002",
+                title: "Casa com Piscina em Condomínio Fechado",
+                location: "Alphaville, Barueri - SP",
+                price: "R$ 850.000",
+                type: "Venda",
+                bedrooms: 4,
+                bathrooms: 3,
+                area: "280m²",
+                garage: 3,
+                year: 2018,
+                images: [
+                    "https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                    "https://images.unsplash.com/photo-1613977257363-707ba9348227?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                ],
+                description: "Casa espaçosa em condomínio fechado de alto padrão em Alphaville. Com 4 suítes, sendo uma master com hidromassagem, sala de estar e de jantar separadas, escritório, cozinha gourmet.",
+                features: [
+                    "4 suítes (master com hidromassagem)",
+                    "Sala de estar e jantar separadas",
+                    "Escritório",
+                    "Cozinha gourmet com ilha",
+                    "Área de churrasco com churrasqueira",
+                    "Piscina aquecida",
+                    "Jardim paisagístico",
+                    "3 vagas de garagem"
+                ],
+                mainImage: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            },
+            3: {
+                id: 3,
+                code: "IMP003",
+                title: "Apartamento Moderno para Aluguel",
+                location: "Pinheiros, São Paulo - SP",
+                price: "R$ 3.200/mês",
+                type: "Aluguel",
+                bedrooms: 2,
+                bathrooms: 2,
+                area: "75m²",
+                garage: 1,
+                year: 2022,
+                images: [
+                    "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                    "https://images.unsplash.com/photo-1615529182904-14819c35db37?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                ],
+                description: "Apartamento moderno e bem localizado no bairro de Pinheiros. Recém-reformado com acabamentos de qualidade, possui 2 quartos (sendo 1 suíte), sala ampla, cozinha planejada.",
+                features: [
+                    "2 quartos (1 suíte)",
+                    "Sala ampla",
+                    "Cozinha planejada",
+                    "Varanda gourmet",
+                    "1 vaga de garagem",
+                    "Piso laminado",
+                    "Armários embutidos",
+                    "Portaria eletrônica"
+                ],
+                mainImage: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+            }
+        };
+        
+        // ============================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================
+        let currentCorretor = null;
+        let currentProperties = [];
+        let propertySwiper = null;
+        let currentPropertyId = null;
+        
+        // ============================================
+        // FUNÇÕES PRINCIPAIS
+        // ============================================
+        
+        // Inicializar o site para o corretor específico
+        function initializeSite() {
+            const slug = getCorretorSlug();
+            currentCorretor = corretoresDatabase[slug] || corretoresDatabase['demo'];
+            
+            if (!currentCorretor) {
+                document.body.innerHTML = '<div style="padding: 50px; text-align: center;">Corretor não encontrado</div>';
+                return;
+            }
+            
+            // Aplicar personalização do corretor
+            applyCorretorBranding();
+            
+            // Carregar imóveis do corretor
+            loadCorretorProperties();
+            
+            // Inicializar eventos
+            initializeEvents();
+            
+            // Atualizar ano no copyright
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+            
+            console.log(`✅ Site carregado para: ${currentCorretor.nome}`);
+        }
+        
+        // Aplicar personalização (cores, textos, etc.)
+        function applyCorretorBranding() {
+            const root = document.documentElement;
+            
+            // Aplicar cores
+            if (currentCorretor.cores) {
+                root.style.setProperty('--primary', currentCorretor.cores.primaria);
+                root.style.setProperty('--secondary', currentCorretor.cores.secundaria);
+                
+                // Atualizar logo
+                document.getElementById('logoInitials').textContent = currentCorretor.logoIniciais;
+                document.getElementById('logoInitials').style.backgroundColor = currentCorretor.cores.primaria;
+            }
+            
+            // Atualizar textos
+            document.getElementById('siteName').innerHTML = currentCorretor.nomeSite;
+            document.getElementById('footerName').textContent = currentCorretor.nomeSite;
+            document.getElementById('copyrightName').textContent = currentCorretor.nomeSite;
+            document.title = `${currentCorretor.nomeSite} - Encontre seu imóvel`;
+            
+            // Hero section
+            if (currentCorretor.hero) {
+                document.getElementById('heroTitle').textContent = currentCorretor.hero.titulo;
+                document.getElementById('heroSubtitle').textContent = currentCorretor.hero.subtitulo;
+            }
+            
+            // Informações de contato no header
+            const contactInfo = document.getElementById('headerContactInfo');
+            contactInfo.innerHTML = `
+                <span><i class="fas fa-phone"></i> ${currentCorretor.telefone}</span>
+                <span><i class="fas fa-envelope"></i> ${currentCorretor.email}</span>
+            `;
+            
+            // WhatsApp flutuante
+            const whatsappFloat = document.getElementById('whatsappFloat');
+            const whatsappMessage = `Olá ${currentCorretor.nome.split(' ')[0]}! Gostaria de informações sobre imóveis.`;
+            whatsappFloat.href = `https://wa.me/${currentCorretor.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`;
+            
+            // Seção de contato
+            document.getElementById('contactAddress').textContent = currentCorretor.endereco;
+            document.getElementById('contactPhoneNumber').textContent = currentCorretor.telefone;
+            document.getElementById('contactEmail').textContent = currentCorretor.email;
+            document.getElementById('contactHours').innerHTML = 'Segunda a Sexta: 9h às 18h<br>Sábado: 9h às 13h';
+            
+            // Agente
+            document.getElementById('agentAvatar').textContent = currentCorretor.agente.nome.substring(0, 2);
+            document.getElementById('agentName').textContent = currentCorretor.agente.nome;
+            document.getElementById('agentSpecialty').textContent = currentCorretor.agente.especialidade;
+            document.getElementById('agentRating').textContent = currentCorretor.agente.avaliacao;
+            
+            // Botão CTA
+            document.getElementById('ctaButton').textContent = `Falar com ${currentCorretor.nome.split(' ')[0]}`;
+        }
+        
+        // Carregar imóveis do corretor
+        function loadCorretorProperties() {
+            currentProperties = [];
+            
+            // Filtrar apenas os imóveis deste corretor
+            currentCorretor.imoveis.forEach(imovelId => {
+                if (imoveisDatabase[imovelId]) {
+                    currentProperties.push(imoveisDatabase[imovelId]);
+                }
+            });
+            
+            renderProperties();
+        }
+        
+        // Renderizar imóveis na grid
+        function renderProperties() {
+            const grid = document.getElementById('propertiesGrid');
+            
+            if (currentProperties.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                        <i class="fas fa-home" style="font-size: 48px; color: var(--gray); margin-bottom: 20px;"></i>
+                        <h3 style="color: var(--primary); margin-bottom: 10px;">Nenhum imóvel disponível no momento</h3>
+                        <p style="color: var(--gray);">Entre em contato para conhecer nossas oportunidades.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = '';
+            
+            currentProperties.forEach(property => {
+                const card = `
+                    <div class="property-card">
+                        <div class="property-image" style="background-image: url('${property.mainImage}')">
+                            <div class="property-tag">${property.type}</div>
+                            <div class="property-price">${property.price}</div>
+                        </div>
+                        <div class="property-info">
+                            <h3>${property.title}</h3>
+                            <div class="property-location">
+                                <i class="fas fa-map-marker-alt"></i> ${property.location}
+                            </div>
+                            <div class="property-features">
+                                <div class="feature">
+                                    <i class="fas fa-bed"></i>
+                                    <span>${property.bedrooms} ${property.bedrooms === 1 ? 'Quarto' : 'Quartos'}</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-bath"></i>
+                                    <span>${property.bathrooms} Banheiro${property.bathrooms > 1 ? 's' : ''}</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-vector-square"></i>
+                                    <span>${property.area}</span>
+                                </div>
+                            </div>
+                            <a href="#" class="property-btn" onclick="viewPropertyDetails(${property.id}); return false;">Ver Detalhes</a>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+        
+        // Visualizar detalhes do imóvel
+        function viewPropertyDetails(propertyId) {
+            const property = currentProperties.find(p => p.id === propertyId);
+            if (!property) return;
+            
+            currentPropertyId = propertyId;
+            
+            // Atualizar informações do modal
+            document.getElementById('modalPropertyTitle').textContent = property.title;
+            document.getElementById('modalPropertyCode').textContent = `CÓD: ${property.code}`;
+            document.getElementById('modalPropertyLocation').textContent = property.location;
+            document.getElementById('modalPropertyPrice').textContent = property.price;
+            document.getElementById('modalPropertyType').textContent = property.type;
+            document.getElementById('modalPropertyDescription').textContent = property.description;
+            
+            // Configurar links de contato com informações do imóvel
+            const whatsappMessage = `Olá! Gostaria de informações sobre o imóvel:\n*${property.code} - ${property.title}*\n${property.location}\n${property.price}`;
+            document.getElementById('whatsappLink').href = `https://wa.me/${currentCorretor.whatsapp}?text=${encodeURIComponent(whatsappMessage)}`;
+            document.getElementById('phoneLink').href = `tel:${currentCorretor.telefone.replace(/\D/g, '')}`;
+            
+            // Configurar link de mensagem
+            document.getElementById('messageLink').onclick = function(e) {
+                e.preventDefault();
+                closePropertyModal();
+                setActiveNav('contato');
+                
+                setTimeout(() => {
+                    document.getElementById('contactSubject').value = property.type === 'Aluguel' ? 'Aluguel' : 'Compra de Imóvel';
+                    document.getElementById('propertyCode').value = property.code;
+                    document.getElementById('contactMessage').value = `Olá! Gostaria de mais informações sobre o imóvel ${property.code} - ${property.title}`;
+                    window.scrollTo({ top: document.getElementById('contato').offsetTop - 80, behavior: 'smooth' });
+                }, 300);
+            };
+            
+            // Carregar galeria de imagens
+            const swiperWrapper = document.getElementById('propertySwiperWrapper');
+            swiperWrapper.innerHTML = '';
+            
+            property.images.forEach(image => {
+                swiperWrapper.innerHTML += `
+                    <div class="swiper-slide" style="background-image: url('${image}')"></div>
+                `;
+            });
+            
+            // Inicializar Swiper
+            if (propertySwiper) {
+                propertySwiper.destroy();
+            }
+            
+            propertySwiper = new Swiper('.propertySwiper', {
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                loop: true,
+                autoplay: {
+                    delay: 5000,
+                }
+            });
+            
+            // Destaques
+            const highlights = document.getElementById('modalPropertyHighlights');
+            highlights.innerHTML = `
+                <div class="highlight-item">
+                    <i class="fas fa-bed"></i>
+                    <span class="highlight-value">${property.bedrooms}</span>
+                    <span class="highlight-label">${property.bedrooms === 1 ? 'Quarto' : 'Quartos'}</span>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-bath"></i>
+                    <span class="highlight-value">${property.bathrooms}</span>
+                    <span class="highlight-label">Banheiro${property.bathrooms > 1 ? 's' : ''}</span>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-car"></i>
+                    <span class="highlight-value">${property.garage}</span>
+                    <span class="highlight-label">Vaga${property.garage > 1 ? 's' : ''}</span>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-expand"></i>
+                    <span class="highlight-value">${property.area}</span>
+                    <span class="highlight-label">Área Total</span>
+                </div>
+            `;
+            
+            // Características
+            const featuresGrid = document.getElementById('modalPropertyFeatures');
+            featuresGrid.innerHTML = '';
+            property.features.forEach(feature => {
+                featuresGrid.innerHTML += `
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>${feature}</span>
+                    </div>
+                `;
+            });
+            
+            // Mostrar modal
+            document.getElementById('propertyModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Fechar modal do imóvel
+        function closePropertyModal() {
+            document.getElementById('propertyModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            if (propertySwiper) {
+                propertySwiper.destroy();
+                propertySwiper = null;
+            }
+        }
+        
+        // Navegação
+        function setActiveNav(section) {
+            document.querySelectorAll('nav a').forEach(link => link.classList.remove('active'));
+            const activeLink = document.getElementById(`nav-${section}`);
+            if (activeLink) activeLink.classList.add('active');
+        }
+        
+        function handleNavClick(section) {
+            setActiveNav(section);
+            if (section === 'inicio') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                const target = document.getElementById(section);
+                if (target) {
+                    window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+                }
+            }
+        }
+        
+        // Busca de imóveis
+        function initializeSearch() {
+            document.getElementById('searchForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const filters = {
+                    cidade: document.getElementById('cidade').value.toLowerCase(),
+                    tipo: document.getElementById('tipo').value,
+                    finalidade: document.getElementById('finalidade').value,
+                    quartos: document.getElementById('quartos').value
+                };
+                
+                let filtered = currentProperties;
+                
+                // Filtrar por cidade
+                if (filters.cidade) {
+                    filtered = filtered.filter(p => 
+                        p.location.toLowerCase().includes(filters.cidade)
+                    );
+                }
+                
+                // Filtrar por tipo
+                if (filters.tipo !== 'Todos os tipos') {
+                    filtered = filtered.filter(p => 
+                        p.title.toLowerCase().includes(filters.tipo.toLowerCase()) ||
+                        (filters.tipo === 'Apartamento' && p.title.toLowerCase().includes('apartamento')) ||
+                        (filters.tipo === 'Casa' && p.title.toLowerCase().includes('casa'))
+                    );
+                }
+                
+                // Filtrar por finalidade
+                if (filters.finalidade !== 'Compra ou Aluguel') {
+                    const isRent = filters.finalidade === 'Aluguel';
+                    filtered = filtered.filter(p => 
+                        isRent ? p.type === 'Aluguel' : p.type === 'Venda'
+                    );
+                }
+                
+                // Filtrar por quartos
+                if (filters.quartos !== 'Qualquer') {
+                    const qtdMatch = filters.quartos.match(/\d+/);
+                    if (qtdMatch) {
+                        const qtd = parseInt(qtdMatch[0]);
+                        filtered = filtered.filter(p => p.bedrooms >= qtd);
+                    }
+                }
+                
+                // Renderizar resultados
+                const grid = document.getElementById('propertiesGrid');
+                if (filtered.length === 0) {
+                    grid.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                            <i class="fas fa-search" style="font-size: 48px; color: var(--gray); margin-bottom: 20px;"></i>
+                            <h3 style="color: var(--primary); margin-bottom: 10px;">Nenhum imóvel encontrado</h3>
+                            <p style="color: var(--gray);">Tente ajustar os filtros da sua busca.</p>
+                        </div>
+                    `;
+                } else {
+                    renderFilteredProperties(filtered);
+                }
+            });
+        }
+        
+        function renderFilteredProperties(filteredProperties) {
+            const grid = document.getElementById('propertiesGrid');
+            grid.innerHTML = '';
+            
+            filteredProperties.forEach(property => {
+                const card = `
+                    <div class="property-card">
+                        <div class="property-image" style="background-image: url('${property.mainImage}')">
+                            <div class="property-tag">${property.type}</div>
+                            <div class="property-price">${property.price}</div>
+                        </div>
+                        <div class="property-info">
+                            <h3>${property.title}</h3>
+                            <div class="property-location">
+                                <i class="fas fa-map-marker-alt"></i> ${property.location}
+                            </div>
+                            <div class="property-features">
+                                <div class="feature">
+                                    <i class="fas fa-bed"></i>
+                                    <span>${property.bedrooms} ${property.bedrooms === 1 ? 'Quarto' : 'Quartos'}</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-bath"></i>
+                                    <span>${property.bathrooms} Banheiro${property.bathrooms > 1 ? 's' : ''}</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-vector-square"></i>
+                                    <span>${property.area}</span>
+                                </div>
+                            </div>
+                            <a href="#" class="property-btn" onclick="viewPropertyDetails(${property.id}); return false;">Ver Detalhes</a>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+        
+        // Formulário de contato
+        function initializeContactForm() {
+            document.getElementById('contactForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    name: document.getElementById('contactName').value,
+                    email: document.getElementById('contactEmailInput').value,
+                    phone: document.getElementById('contactPhoneInput').value,
+                    subject: document.getElementById('contactSubject').value,
+                    propertyCode: document.getElementById('propertyCode').value,
+                    message: document.getElementById('contactMessage').value,
+                    corretor: currentCorretor.nome,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Aqui você enviaria os dados para o CRM
+                // Exemplo: enviarParaCRM(formData);
+                
+                console.log('📧 Dados do formulário:', formData);
+                
+                // Mostrar confirmação
+                showConfirmationModal(formData);
+                
+                // Resetar formulário
+                this.reset();
+            });
+        }
+        
+        function showConfirmationModal(formData) {
+            const details = document.getElementById('confirmationDetails');
+            details.innerHTML = `
+                <p><strong>Nome:</strong> ${formData.name}</p>
+                <p><strong>E-mail:</strong> ${formData.email}</p>
+                <p><strong>Telefone:</strong> ${formData.phone || 'Não informado'}</p>
+                <p><strong>Assunto:</strong> ${formData.subject}</p>
+                ${formData.propertyCode ? `<p><strong>Código do imóvel:</strong> ${formData.propertyCode}</p>` : ''}
+                <p><strong>Corretor:</strong> ${formData.corretor}</p>
+                <p><strong>Protocolo:</strong> ${currentCorretor.slug.toUpperCase()}${Date.now().toString().slice(-6)}</p>
+            `;
+            
+            document.getElementById('confirmationModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Newsletter
+        function initializeNewsletter() {
+            document.getElementById('newsletterBtn').addEventListener('click', function() {
+                const email = document.getElementById('newsletterEmail').value;
+                if (email && email.includes('@')) {
+                    alert(`Obrigado por se inscrever na newsletter de ${currentCorretor.nome}! Você receberá nossas novidades em breve.`);
+                    document.getElementById('newsletterEmail').value = '';
+                    
+                    // Aqui você enviaria o email para o CRM
+                    console.log('📬 Newsletter inscrição:', { email, corretor: currentCorretor.nome });
+                } else {
+                    alert('Por favor, insira um e-mail válido.');
+                }
+            });
+        }
+        
+        // Inicializar todos os eventos
+        function initializeEvents() {
+            // Navegação
+            document.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.id.replace('nav-', '');
+                    handleNavClick(section);
+                });
+            });
+            
+            // Logo volta ao início
+            document.getElementById('logo-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                handleNavClick('inicio');
+            });
+            
+            // Botões de fechar modal
+            document.getElementById('closePropertyModal').addEventListener('click', closePropertyModal);
+            document.getElementById('closeConfirmationBtn').addEventListener('click', closeConfirmationModal);
+            
+            // Fechar modal ao clicar fora
+            document.getElementById('propertyModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePropertyModal();
+                }
+            });
+            
+            document.getElementById('confirmationModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeConfirmationModal();
+                }
+            });
+            
+            // Botão "Ver Todos"
+            document.getElementById('viewAllBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                renderProperties();
+                window.scrollTo({ top: document.getElementById('imoveis').offsetTop - 80, behavior: 'smooth' });
+            });
+            
+            // Fechar modais com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closePropertyModal();
+                    closeConfirmationModal();
+                }
+            });
+            
+            // Scroll suave para âncoras
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href === '#') return;
+                    
+                    const target = document.querySelector(href);
+                    if (target) {
+                        e.preventDefault();
+                        window.scrollTo({
+                            top: target.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Inicializar busca
+            initializeSearch();
+            
+            // Inicializar formulário de contato
+            initializeContactForm();
+            
+            // Inicializar newsletter
+            initializeNewsletter();
+        }
+        
+        // ============================================
+        // INICIALIZAR SITE
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSite();
+        });
+        
+        // ============================================
+        // FUNÇÕES GLOBAIS (para uso em onclick)
+        // ============================================
+        window.viewPropertyDetails = viewPropertyDetails;
+        window.closePropertyModal = closePropertyModal;
+        window.closeConfirmationModal = closeConfirmationModal;
+        window.handleNavClick = handleNavClick;
+        
+        // ============================================
+        // EXEMPLO DE COMO INTEGRAR COM API REAL
+        // ============================================
+        /*
+        // 1. Substituir a função getCorretorSlug para buscar da API
+        async function getCorretorFromAPI(slug) {
+            try {
+                const response = await fetch(`https://seu-crm.com/api/corretores/${slug}`);
+                if (!response.ok) throw new Error('Corretor não encontrado');
+                return await response.json();
+            } catch (error) {
+                console.error('Erro ao buscar corretor:', error);
+                return null;
+            }
+        }
+        
+        // 2. Substituir a função loadCorretorProperties para buscar da API
+        async function loadPropertiesFromAPI(corretorId) {
+            try {
+                const response = await fetch(`https://seu-crm.com/api/imoveis?corretor=${corretorId}`);
+                if (!response.ok) throw new Error('Erro ao buscar imóveis');
+                return await response.json();
+            } catch (error) {
+                console.error('Erro ao buscar imóveis:', error);
+                return [];
+            }
+        }
+        */
+    </script>
+</body>
+</html>

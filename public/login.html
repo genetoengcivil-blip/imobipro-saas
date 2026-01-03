@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | ImobiPro</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary:#1a3a5f;
+      --primary-dark:#0d2842;
+      --primary-light:#2c5282;
+      --secondary:#25D366;
+      --light:#ffffff;
+      --dark:#2d3748;
+      --gray:#718096;
+    }
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Inter','Segoe UI',system-ui;
+    }
+
+    body{
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .login-container{
+      width:100%;
+      max-width:1200px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      min-height:700px;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 20px 50px rgba(0,0,0,.3);
+      background:#fff;
+    }
+
+    .login-left{
+      padding:60px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .login-right{
+      background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+      padding:60px;
+      color:#fff;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .logo{
+      font-size:2rem;
+      font-weight:700;
+      color:var(--primary);
+      margin-bottom:40px;
+    }
+    .logo span{color:var(--secondary)}
+
+    h1{
+      font-size:2.4rem;
+      color:var(--primary);
+      margin-bottom:10px;
+    }
+
+    .subtitle{
+      color:var(--gray);
+      margin-bottom:40px;
+      font-size:1.1rem;
+    }
+
+    .form-group{margin-bottom:25px}
+    .form-group label{
+      display:block;
+      margin-bottom:8px;
+      font-weight:500;
+      color:var(--dark);
+    }
+    .form-group input{
+      width:100%;
+      padding:15px 20px;
+      border:2px solid #e2e8f0;
+      border-radius:10px;
+      font-size:1rem;
+    }
+
+    .login-btn{
+      width:100%;
+      padding:16px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-light));
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      font-size:1.1rem;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .error-message{
+      background:#fee;
+      color:#c33;
+      padding:12px;
+      border-radius:8px;
+      margin-bottom:20px;
+      text-align:center;
+      display:none;
+    }
+
+    .features-list{
+      list-style:none;
+      margin-top:30px;
+    }
+
+    .features-list li{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:15px;
+      font-size:1.05rem;
+    }
+
+    .features-list i{
+      color:var(--secondary);
+      font-size:1.1rem;
+    }
+
+    @media(max-width:992px){
+      .login-container{grid-template-columns:1fr;max-width:500px}
+      .login-right{display:none}
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="login-container">
+
+  <!-- LEFT -->
+  <div class="login-left">
+    <div class="logo">
+      <i class="fas fa-home"></i> Imobi<span>Pro</span>
+    </div>
+
+    <h1>Bem-vindo de volta</h1>
+    <p class="subtitle">Acesse sua conta ImobiPro</p>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label>E-mail</label>
+        <input id="email" type="email" required>
+      </div>
+
+      <div class="form-group">
+        <label>Senha</label>
+        <input id="password" type="password" required>
+      </div>
+
+      <button id="btnLogin" class="login-btn">
+        <i class="fas fa-sign-in-alt"></i> Entrar
+      </button>
+    </form>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="login-right">
+    <h2>Um sistema completo para seu sucesso</h2>
+    <p>Gerencie imóveis, clientes, vendas e tenha um site profissional integrado.</p>
+
+    <ul class="features-list">
+      <li><i class="fas fa-check-circle"></i> Dashboard com métricas em tempo real</li>
+      <li><i class="fas fa-check-circle"></i> Gestão completa de portfólio</li>
+      <li><i class="fas fa-check-circle"></i> CRM inteligente de clientes</li>
+      <li><i class="fas fa-check-circle"></i> Site personalizado integrado</li>
+      <li><i class="fas fa-check-circle"></i> Relatórios avançados</li>
+      <li><i class="fas fa-check-circle"></i> Suporte especializado 24/7</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- LOGIN REAL -->
+<script type="module">
+  import { supabase } from "/shared/config/supabase.js";
+
+  const form = document.getElementById("loginForm");
+  const errorBox = document.getElementById("errorMessage");
+  const btn = document.getElementById("btnLogin");
+
+  form.addEventListener("submit", async (e)=>{
+    e.preventDefault();
+    errorBox.style.display="none";
+    btn.disabled=true;
+    btn.textContent="Entrando...";
+
+    const email=document.getElementById("email").value.trim();
+    const password=document.getElementById("password").value;
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if(error){
+      errorBox.textContent=error.message;
+      errorBox.style.display="block";
+      btn.disabled=false;
+      btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Entrar';
+      return;
+    }
+
+    const { data: profile, error: pe } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("user_id", data.user.id)
+      .single();
+
+    if(pe || !profile){
+      errorBox.textContent="Perfil não encontrado.";
+      errorBox.style.display="block";
+      btn.disabled=false;
+      btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Entrar';
+      return;
+    }
+
+    window.location.href =
+      profile.role === "admin"
+        ? "/apps/crm-admin/index.html"
+        : "/apps/crm-corretor/index.html";
+  });
+</script>
+
+</body>
+</html>
