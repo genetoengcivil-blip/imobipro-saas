@@ -1,34 +1,39 @@
-// app/crm/corretor/components/tourSteps.ts
+export type TourStep = {
+  id: string;
+  title: string;
+  description: string;
+  selector: string;
+};
 
-export const tourSteps = [
+export const tourSteps: TourStep[] = [
   {
     id: "dashboard",
-    selector: "#dashboard-cards",
     title: "Dashboard",
-    description: "Aqui você acompanha métricas, desempenho e resultados em tempo real."
+    description: "Visão geral do seu negócio",
+    selector: "#dashboard",
   },
   {
-    id: "leads",
-    selector: "#menu-leads",
-    title: "Leads",
-    description: "Gerencie seus clientes em um funil inteligente e acompanhe conversões."
+    id: "clientes",
+    title: "Clientes",
+    description: "Gerencie seus clientes",
+    selector: "#clientes",
   },
   {
     id: "imoveis",
-    selector: "#menu-imoveis",
     title: "Imóveis",
-    description: "Cadastre e gerencie seus imóveis conforme o seu plano."
+    description: "Cadastre e gerencie imóveis",
+    selector: "#imoveis",
   },
   {
-    id: "site",
-    selector: "#menu-site",
-    title: "Seu site",
-    description: "Visualize e personalize o site profissional integrado ao CRM."
+    id: "leads",
+    title: "Leads",
+    description: "Acompanhe seus leads",
+    selector: "#leads",
   },
   {
-    id: "plano",
-    selector: "#menu-plano",
-    title: "Plano e upgrades",
-    description: "Aqui você pode fazer upgrade ou downgrade do seu plano."
-  }
-]
+    id: "config",
+    title: "Configurações",
+    description: "Personalize seu perfil",
+    selector: "#config",
+  },
+];

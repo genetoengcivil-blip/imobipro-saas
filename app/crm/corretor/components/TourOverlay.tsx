@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import type { TourStep } from "./tourSteps";
+import { tourSteps } from "./tourSteps";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
