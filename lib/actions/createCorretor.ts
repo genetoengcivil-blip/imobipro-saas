@@ -13,16 +13,24 @@ export async function createCorretor({
 }: CreateCorretorInput) {
   const supabase = createAdminClient();
 
-  // 1️⃣ Criar usuário no Auth (Supabase v2)
+  // 1️⃣ Criar usuário no Auth
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
+    user_metadata: {
+      nome,
+      role: "corretor",
+    },
   });
 
   if (error) {
-    // Email já existe → Supabase retorna erro aqui
+    // Email duplicado cai aqui automaticamente
     throw new Error(error.message);
+  }
+
+  if (!data.user) {
+    throw new Error("Falha ao criar usuário no Auth");
   }
 
   const userId = data.user.id;
@@ -39,6 +47,8 @@ export async function createCorretor({
     });
 
   if (insertError) {
+    // rollback de segurança
+    await supabase.auth.admin.deleteUser(userId);
     throw new Error(insertError.message);
   }
 
