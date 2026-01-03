@@ -7,13 +7,15 @@ type Plano = "basic" | "pro" | "premium";
 export async function createCorretor(email: string, plano: Plano) {
   const supabase = createClient();
 
-  // Buscar usuário por email (Supabase v2)
+  // Supabase v2 — buscar usuário por email
   const { data, error } = await supabase.auth.admin.listUsers({
     email,
     perPage: 1,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    throw new Error(error.message);
+  }
 
   let userId: string;
 
@@ -40,7 +42,9 @@ export async function createCorretor(email: string, plano: Plano) {
     status: "ativo",
   });
 
-  if (dbError) throw new Error(dbError.message);
+  if (dbError) {
+    throw new Error(dbError.message);
+  }
 
   const magicLink = await generateMagicLogin(email);
   await sendAccessEmail(email, magicLink);
