@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       body: {
         items: [
           {
+            id: plano,
             title,
             quantity: 1,
             unit_price: price,
