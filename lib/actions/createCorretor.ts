@@ -13,19 +13,19 @@ export async function createCorretor({
 }: CreateCorretorInput) {
   const supabase = createAdminClient();
 
-  // 1️⃣ Criar usuário no Auth
-  const { data: userData, error: userError } =
-    await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
+  // 1️⃣ Criar usuário no Auth (Supabase v2)
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
 
-  if (userError) {
-    throw new Error(userError.message);
+  if (error) {
+    // Email já existe → Supabase retorna erro aqui
+    throw new Error(error.message);
   }
 
-  const userId = userData.user.id;
+  const userId = data.user.id;
 
   // 2️⃣ Criar registro do corretor
   const { error: insertError } = await supabase
@@ -42,7 +42,5 @@ export async function createCorretor({
     throw new Error(insertError.message);
   }
 
-  return {
-    userId,
-  };
+  return { userId };
 }
