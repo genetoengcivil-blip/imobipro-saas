@@ -1,0 +1,20 @@
+{
+  "routes": [
+    { "handle": "filesystem" },
+
+    {
+      "src": "/$",
+      "dest": "/landing_page.html",
+      "has": [
+        { "type": "host", "value": "imobi-pro.com" }
+      ]
+    },
+    {
+      "src": "/$",
+      "dest": "/landing_page.html",
+      "has": [
+        { "type": "host", "value": "www.imobi-pro.com" }
+      ]
+    }
+  ]
+}
