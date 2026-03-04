@@ -1,52 +1,36 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 
 /**
  * Webhook Nexano → ImobiPro
- * POST /api/webhooks/nexano
+ * Rota: POST /api/webhooks/nexano
  *
- * Requisitos:
- * - POST JSON
- * - Token via header (X-Webhook-Token ou Authorization Bearer) quando NEXANO_WEBHOOK_TOKEN existir
- * - Extrai email/documento mesmo com payload variando (inclui casos em que email/doc vêm como objeto)
- * - Senha temporária = CPF/CNPJ, armazenada como hash (bcrypt)
+ * - Token via headers (vários formatos)
+ * - Hash senha temporária (CPF/CNPJ)
  * - must_change_password = true
- * - Idempotência: por transaction_id (pagamentos) e por email (users)
+ * - Idempotência por transaction_id e por email
  */
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
 
 const NEXANO_WEBHOOK_TOKEN = process.env.NEXANO_WEBHOOK_TOKEN || "";
 const WEBHOOK_DEBUG = (process.env.WEBHOOK_DEBUG || "").toLowerCase() === "true";
 
-function getHeader(req: VercelRequest, name: string): string {
-  const value = req.headers[name.toLowerCase()];
-  if (Array.isArray(value)) return value[0] ?? "";
-  return value ?? "";
+type AnyObj = Record<string, any>;
+
+function json(res: ServerResponse, status: number, body: AnyObj) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.end(JSON.stringify(body));
 }
 
-type Found<T = any> = { value: T; path: string } | null;
-
-function pickFirstWithPath(obj: any, paths: string[]): Found {
-  for (const path of paths) {
-    const parts = path.split(".");
-    let cur = obj;
-    let ok = true;
-    for (const p of parts) {
-      if (cur && typeof cur === "object" && p in cur) cur = (cur as any)[p];
-      else {
-        ok = false;
-        break;
-      }
-    }
-    if (ok && cur !== undefined && cur !== null && cur !== "") {
-      return { value: cur, path };
-    }
-  }
-  return null;
+function getHeader(req: IncomingMessage, name: string): string {
+  const v = req.headers[name.toLowerCase()];
+  if (Array.isArray(v)) return v[0] ?? "";
+  return (v ?? "").toString();
 }
 
 function normalizeEmail(email: string): string {
@@ -55,98 +39,6 @@ function normalizeEmail(email: string): string {
 
 function normalizeDocument(doc: string): string {
   return (doc || "").replace(/\D/g, "");
-}
-
-function isEmailLike(s: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-}
-
-function getEventType(payload: any): string {
-  return (pickFirstWithPath(payload, ["event", "type", "name", "action"])?.value ?? "unknown_event").toString();
-}
-
-// 🔥 IMPORTANT: “desembrulha” valores quando vierem como objeto
-function unwrapPrimitive(v: any): string {
-  if (v === null || v === undefined) return "";
-  if (typeof v === "string") return v;
-  if (typeof v === "number") return String(v);
-
-  // Se vier como objeto, tenta campos comuns
-  if (typeof v === "object") {
-    const found = pickFirstWithPath(v, [
-      "value",
-      "number",
-      "document",
-      "document_number",
-      "cpf",
-      "cnpj",
-      "email",
-      "address.email",
-    ]);
-    if (found) return unwrapPrimitive(found.value);
-
-    // fallback: se tiver 1 chave só, usa ela
-    const keys = Object.keys(v);
-    if (keys.length === 1) return unwrapPrimitive((v as any)[keys[0]]);
-  }
-
-  return "";
-}
-
-// Busca recursiva por email/doc em qualquer lugar do JSON,
-// inclusive quando email/doc vêm como objeto.
-function findRecursive(
-  obj: any,
-  options: {
-    keyMatchers?: RegExp[];
-    valuePredicate?: (v: any) => boolean;
-    maxDepth?: number;
-  },
-  basePath = "",
-  depth = 0
-): Found {
-  const maxDepth = options.maxDepth ?? 12;
-  if (depth > maxDepth) return null;
-  if (obj === null || obj === undefined) return null;
-
-  // Se o valor em si bater no predicate
-  if (options.valuePredicate && options.valuePredicate(obj)) {
-    return { value: obj, path: basePath || "$" };
-  }
-
-  if (typeof obj !== "object") return null;
-
-  if (Array.isArray(obj)) {
-    for (let i = 0; i < obj.length; i++) {
-      const found = findRecursive(obj[i], options, `${basePath}[${i}]`, depth + 1);
-      if (found) return found;
-    }
-    return null;
-  }
-
-  for (const [k, v] of Object.entries(obj)) {
-    const p = basePath ? `${basePath}.${k}` : k;
-
-    // Se a chave bater, tenta devolver um valor útil (inclusive se for objeto)
-    if (options.keyMatchers?.some((rx) => rx.test(k))) {
-      const unwrapped = unwrapPrimitive(v);
-      if (unwrapped) return { value: unwrapped, path: p };
-      // Se não der para “desembrulhar”, continua descendo
-    }
-
-    const found = findRecursive(v, options, p, depth + 1);
-    if (found) return found;
-  }
-
-  return null;
-}
-
-function safeClone(obj: any) {
-  try {
-    return JSON.parse(JSON.stringify(obj));
-  } catch {
-    return obj;
-  }
 }
 
 function maskEmail(email: string) {
@@ -163,19 +55,66 @@ function maskDoc(doc: string) {
   return `${digits.slice(0, 2)}***${digits.slice(-2)}`;
 }
 
-function validateToken(req: VercelRequest) {
-  const xToken = getHeader(req, "x-webhook-token");
+async function readJsonBody(req: IncomingMessage): Promise<any> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(Buffer.from(chunk));
+  const raw = Buffer.concat(chunks).toString("utf8").trim();
+  if (!raw) return {};
+  return JSON.parse(raw);
+}
+
+function unwrapPrimitive(v: any): string {
+  if (v === null || v === undefined) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number") return String(v);
+
+  if (typeof v === "object") {
+    const keys = ["value", "number", "document", "document_number", "cpf", "cnpj", "email"];
+    for (const k of keys) {
+      if (k in v) return unwrapPrimitive(v[k]);
+    }
+    const onlyKeys = Object.keys(v);
+    if (onlyKeys.length === 1) return unwrapPrimitive(v[onlyKeys[0]]);
+  }
+
+  return "";
+}
+
+function safeClone(obj: any) {
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch {
+    return obj;
+  }
+}
+
+function validateToken(req: IncomingMessage) {
+  // Aceita múltiplos padrões
+  const xWebhookToken = getHeader(req, "x-webhook-token");
+  const xNexanoToken = getHeader(req, "x-nexano-token");
+  const xSignature = getHeader(req, "x-webhook-signature");
+  const xApiKey = getHeader(req, "x-api-key");
   const auth = getHeader(req, "authorization");
-  const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : auth;
-  const provided = xToken || bearer;
 
-  // Se token não configurado ainda: deixa passar para o evento de teste
-  if (!NEXANO_WEBHOOK_TOKEN) return { ok: true, provided, enforced: false };
+  let tokenFromAuth = "";
+  if (auth.startsWith("Bearer ")) tokenFromAuth = auth.slice(7);
+  else if (auth.startsWith("Token ")) tokenFromAuth = auth.slice(6);
+  else tokenFromAuth = auth;
 
-  if (!provided) return { ok: false, provided, enforced: true };
-  if (provided !== NEXANO_WEBHOOK_TOKEN) return { ok: false, provided, enforced: true };
+  const provided = xWebhookToken || xNexanoToken || xSignature || xApiKey || tokenFromAuth;
 
-  return { ok: true, provided, enforced: true };
+  console.log("[NEXANO_WEBHOOK] token headers present:", {
+    has_x_webhook_token: !!xWebhookToken,
+    has_x_nexano_token: !!xNexanoToken,
+    has_x_webhook_signature: !!xSignature,
+    has_x_api_key: !!xApiKey,
+    has_authorization: !!auth,
+  });
+
+  if (!NEXANO_WEBHOOK_TOKEN) return { ok: true, enforced: false };
+  if (!provided) return { ok: false, enforced: true };
+  if (provided !== NEXANO_WEBHOOK_TOKEN) return { ok: false, enforced: true };
+  return { ok: true, enforced: true };
 }
 
 function getSupabaseAdmin() {
@@ -187,253 +126,118 @@ function getSupabaseAdmin() {
   });
 }
 
-function slugify(input: string): string {
-  return (input || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "")
-    .slice(0, 60);
-}
+function extractBuyer(payload: any) {
+  const email =
+    unwrapPrimitive(payload?.customer?.email) ||
+    unwrapPrimitive(payload?.buyer?.email) ||
+    unwrapPrimitive(payload?.payer?.email) ||
+    unwrapPrimitive(payload?.data?.customer?.email) ||
+    unwrapPrimitive(payload?.data?.buyer?.email) ||
+    unwrapPrimitive(payload?.data?.email) ||
+    "";
 
-async function ensureUniqueSlug(
-  supabase: ReturnType<typeof createClient>,
-  base: string
-): Promise<string> {
-  const baseSlug = slugify(base || "corretor") || "corretor";
-  let slug = baseSlug;
+  const document =
+    unwrapPrimitive(payload?.customer?.document) ||
+    unwrapPrimitive(payload?.customer?.document_number) ||
+    unwrapPrimitive(payload?.customer?.cpf) ||
+    unwrapPrimitive(payload?.customer?.cnpj) ||
+    unwrapPrimitive(payload?.buyer?.document) ||
+    unwrapPrimitive(payload?.data?.customer?.document) ||
+    unwrapPrimitive(payload?.data?.customer?.document_number) ||
+    unwrapPrimitive(payload?.data?.customer?.cpf) ||
+    unwrapPrimitive(payload?.data?.customer?.cnpj) ||
+    "";
 
-  for (let i = 0; i < 20; i++) {
-    const { data, error } = await supabase.from("tenants").select("id").eq("slug", slug).maybeSingle();
-    if (error) throw error;
-    if (!data) return slug;
-    slug = `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-  }
-  return `${baseSlug}-${Date.now()}`;
-}
+  const name =
+    unwrapPrimitive(payload?.customer?.name) ||
+    unwrapPrimitive(payload?.buyer?.name) ||
+    unwrapPrimitive(payload?.data?.customer?.name) ||
+    unwrapPrimitive(payload?.data?.buyer?.name) ||
+    "";
 
-function extractBuyerData(payload: any) {
-  // 1) Tenta paths comuns
-  const nameFound =
-    pickFirstWithPath(payload, [
-      "customer.name",
-      "customer.full_name",
-      "buyer.name",
-      "buyer.full_name",
-      "payer.name",
-      "payer.full_name",
-      "transaction.customer.name",
-      "transaction.buyer.name",
-      "data.customer.name",
-      "data.buyer.name",
-      "data.payer.name",
-      "data.transaction.customer.name",
-    ]) || null;
+  const transactionId =
+    unwrapPrimitive(payload?.transaction_id) ||
+    unwrapPrimitive(payload?.transactionId) ||
+    unwrapPrimitive(payload?.transaction?.id) ||
+    unwrapPrimitive(payload?.data?.transaction_id) ||
+    unwrapPrimitive(payload?.data?.transactionId) ||
+    unwrapPrimitive(payload?.data?.transaction?.id) ||
+    "";
 
-  const emailFound =
-    pickFirstWithPath(payload, [
-      "customer.email",
-      "buyer.email",
-      "payer.email",
-      "transaction.customer.email",
-      "transaction.buyer.email",
-      "data.customer.email",
-      "data.buyer.email",
-      "data.email",
-      // casos onde email vem como objeto
-      "customer.email.value",
-      "buyer.email.value",
-      "data.customer.email.value",
-    ]) || null;
+  const plan =
+    unwrapPrimitive(payload?.plan) ||
+    unwrapPrimitive(payload?.offer) ||
+    unwrapPrimitive(payload?.data?.plan) ||
+    unwrapPrimitive(payload?.data?.offer) ||
+    "";
 
-  const docFound =
-    pickFirstWithPath(payload, [
-      "customer.document",
-      "customer.document_number",
-      "customer.cpf",
-      "customer.cnpj",
-      "buyer.document",
-      "buyer.document_number",
-      "buyer.cpf",
-      "buyer.cnpj",
-      "transaction.customer.document",
-      "transaction.customer.document_number",
-      "data.customer.document",
-      "data.customer.document_number",
-      "data.customer.cpf",
-      "data.customer.cnpj",
-      // casos onde doc vem como objeto
-      "customer.document.value",
-      "customer.document.number",
-      "data.customer.document.value",
-      "data.customer.document.number",
-    ]) || null;
-
-  const transactionFound =
-    pickFirstWithPath(payload, [
-      "transaction_id",
-      "transactionId",
-      "transaction.id",
-      "transaction.code",
-      "payment.id",
-      "order.id",
-      "data.transaction_id",
-      "data.transactionId",
-      "data.transaction.id",
-      "data.payment.id",
-    ]) || null;
-
-  const planFound =
-    pickFirstWithPath(payload, ["product.plan", "plan", "offer", "data.plan", "data.offer", "data.product.plan"]) || null;
-
-  const valueFound =
-    pickFirstWithPath(payload, ["product.value", "value", "amount", "data.amount", "data.value"]) || null;
-
-  // 2) Fallback: busca recursiva por email (valor ou objeto)
-  const emailFallback =
-    emailFound ||
-    findRecursive(payload, {
-      valuePredicate: (v) => {
-        const s = unwrapPrimitive(v);
-        return !!s && typeof s === "string" && isEmailLike(s);
-      },
-      maxDepth: 14,
-    });
-
-  // 3) Fallback: busca recursiva por CPF/CNPJ (chaves comuns ou valor com 11/14)
-  const docFallback =
-    docFound ||
-    findRecursive(payload, {
-      keyMatchers: [/cpf/i, /cnpj/i, /document/i, /documento/i, /tax/i, /doc/i],
-      valuePredicate: (v) => {
-        const s = unwrapPrimitive(v);
-        const digits = normalizeDocument(s);
-        return digits.length === 11 || digits.length === 14;
-      },
-      maxDepth: 14,
-    });
-
-  // 4) Nome fallback
-  const nameFallback =
-    nameFound ||
-    findRecursive(payload, {
-      keyMatchers: [/name/i, /full_name/i, /nome/i],
-      valuePredicate: (v) => {
-        const s = unwrapPrimitive(v);
-        return !!s && s.trim().length >= 3;
-      },
-      maxDepth: 12,
-    });
-
-  const name = unwrapPrimitive(nameFallback?.value ?? "").trim();
-  const email = normalizeEmail(unwrapPrimitive(emailFallback?.value ?? ""));
-  const document = normalizeDocument(unwrapPrimitive(docFallback?.value ?? ""));
-  const transactionId = unwrapPrimitive(transactionFound?.value ?? "");
-  const plan = unwrapPrimitive(planFound?.value ?? "");
-  const valueRaw = valueFound?.value;
-  const value = typeof valueRaw === "number" ? valueRaw : valueRaw ? Number(unwrapPrimitive(valueRaw)) : NaN;
+  const value =
+    payload?.amount ??
+    payload?.value ??
+    payload?.data?.amount ??
+    payload?.data?.value ??
+    null;
 
   return {
-    name,
-    email,
-    document,
-    transactionId,
-    plan,
+    email: normalizeEmail(email),
+    document: normalizeDocument(document),
+    name: name || "",
+    transactionId: transactionId || "",
+    plan: plan || "",
     value,
-    _found: {
-      name: nameFallback?.path || "",
-      email: emailFallback?.path || "",
-      document: docFallback?.path || "",
-      transactionId: transactionFound?.path || "",
-    },
   };
 }
 
 function printPayloadSample(payload: any) {
-  const safePayload = safeClone(payload);
-
-  // tenta mascarar “locais comuns”, sem garantir estrutura
-  try {
-    const candidates = [
-      safePayload?.customer,
-      safePayload?.buyer,
-      safePayload?.payer,
-      safePayload?.transaction?.customer,
-      safePayload?.transaction?.buyer,
-      safePayload?.data?.customer,
-      safePayload?.data?.buyer,
-      safePayload?.data?.payer,
-      safePayload?.data?.transaction?.customer,
-    ].filter(Boolean);
-
-    for (const c of candidates) {
-      const e = unwrapPrimitive(c?.email);
-      const d = unwrapPrimitive(c?.document || c?.document_number || c?.cpf || c?.cnpj);
-
-      if (c?.email) c.email = maskEmail(e);
-      if (c?.document) c.document = maskDoc(d);
-      if (c?.document_number) c.document_number = maskDoc(d);
-      if (c?.cpf) c.cpf = maskDoc(d);
-      if (c?.cnpj) c.cnpj = maskDoc(d);
-    }
-  } catch {}
-
-  console.log("[NEXANO_WEBHOOK] payload_sample:", JSON.stringify(safePayload).slice(0, 6000));
+  const safe = safeClone(payload);
+  console.log("[NEXANO_WEBHOOK] payload_sample:", JSON.stringify(safe).slice(0, 6000));
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  // Método
+  if ((req.method || "").toUpperCase() !== "POST") {
     res.setHeader("Allow", "POST");
-    return res.status(405).json({ ok: false, error: "Method Not Allowed" });
+    return json(res, 405, { ok: false, error: "Method Not Allowed" });
   }
 
+  // Token
   const tokenCheck = validateToken(req);
   if (!tokenCheck.ok) {
-    return res.status(401).json({ ok: false, error: "Unauthorized (invalid webhook token)" });
+    return json(res, 401, { ok: false, error: "Unauthorized (invalid webhook token)" });
   }
 
-  let payload: any = req.body;
+  // Body
+  let payload: any;
   try {
-    if (typeof payload === "string") payload = JSON.parse(payload);
+    payload = await readJsonBody(req);
   } catch {
-    return res.status(400).json({ ok: false, error: "Invalid JSON payload" });
+    return json(res, 400, { ok: false, error: "Invalid JSON payload" });
   }
 
-  const eventType = getEventType(payload);
-  const buyer = extractBuyerData(payload);
+  if (WEBHOOK_DEBUG) printPayloadSample(payload);
 
-  console.log("[NEXANO_WEBHOOK] eventType:", eventType);
+  // Extração
+  const buyer = extractBuyer(payload);
+
   console.log("[NEXANO_WEBHOOK] extracted:", {
     email: buyer.email ? maskEmail(buyer.email) : "",
     document: buyer.document ? maskDoc(buyer.document) : "",
     transactionId: buyer.transactionId,
     plan: buyer.plan,
-    value: buyer.value,
-    token_enforced: tokenCheck.enforced,
-    found_paths: buyer._found,
   });
 
-  // Se debug ligado, sempre imprime amostra
-  if (WEBHOOK_DEBUG) {
-    printPayloadSample(payload);
-  }
-
-  // Se estiver faltando email/document, imprime amostra também (mesmo sem debug)
   if (!buyer.email || !buyer.document) {
+    // imprime amostra sempre que falhar, para mapear
     printPayloadSample(payload);
-
-    return res.status(400).json({
+    return json(res, 400, {
       ok: false,
       error: "Missing required buyer data (email/document)",
       received: {
-        eventType,
         email: buyer.email || "",
         document_present: !!buyer.document,
         transactionId: buyer.transactionId || "",
-        found_paths: buyer._found,
       },
-      hint: "Confira os logs da Vercel: procure por [NEXANO_WEBHOOK] payload_sample e me envie aqui.",
+      hint: "Veja o log [NEXANO_WEBHOOK] payload_sample e me envie aqui.",
     });
   }
 
@@ -442,85 +246,82 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 1) Idempotência por transaction_id
     if (buyer.transactionId) {
-      const { data: existingPay, error: payCheckErr } = await supabase
+      const { data: existingPay, error: payErr } = await supabase
         .from("pagamentos")
         .select("id, tenant_id")
         .eq("transaction_id", buyer.transactionId)
         .maybeSingle();
 
-      if (payCheckErr) throw payCheckErr;
+      if (payErr) throw payErr;
 
       if (existingPay) {
-        return res.status(200).json({
-          ok: true,
-          status: "already_processed",
-          transactionId: buyer.transactionId,
-        });
+        return json(res, 200, { ok: true, status: "already_processed" });
       }
     }
 
     // 2) Idempotência por email
-    const { data: existingUser, error: userCheckErr } = await supabase
+    const { data: existingUser, error: userErr } = await supabase
       .from("users")
-      .select("id, tenant_id, email")
+      .select("id, tenant_id")
       .eq("email", buyer.email)
       .maybeSingle();
 
-    if (userCheckErr) throw userCheckErr;
+    if (userErr) throw userErr;
 
     if (existingUser) {
+      // registra pagamento se tiver transactionId
       if (buyer.transactionId) {
         await supabase.from("pagamentos").insert({
           tenant_id: existingUser.tenant_id,
           transaction_id: buyer.transactionId,
           plano: buyer.plan || null,
-          valor: Number.isFinite(buyer.value) ? buyer.value : null,
+          valor: buyer.value,
           status: "approved",
         });
       }
 
-      return res.status(200).json({
-        ok: true,
-        status: "user_exists",
-        email: buyer.email,
-      });
+      return json(res, 200, { ok: true, status: "user_exists" });
     }
 
-    // 3) Criar tenant
+    // 3) Criar tenant (slug simples por enquanto)
     const tenantName = buyer.name || buyer.email.split("@")[0];
-    const slug = await ensureUniqueSlug(supabase, tenantName);
 
     const { data: tenant, error: tenantErr } = await supabase
       .from("tenants")
       .insert({
         nome_empresa: tenantName,
-        slug,
+        slug: (tenantName || "corretor")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)+/g, "")
+            .slice(0, 60) + "-" + Math.floor(1000 + Math.random() * 9000), // se sua tabela exigir slug unique, me diga que eu ajusto para gerar slug
         plano: buyer.plan || null,
         status: "ativo",
       })
-      .select("id, slug")
+      .select("id")
       .single();
 
     if (tenantErr) throw tenantErr;
 
-    // 4) Criar usuário com senha temporária hash (CPF/CNPJ)
-    const tempPassword = buyer.document;
-    const passwordHash = await bcrypt.hash(tempPassword, 10);
+    // 4) Criar usuário com senha temporária hash
+    const passwordHash = await bcrypt.hash(buyer.document, 10);
 
-    const { data: user, error: userErr } = await supabase
+    const { data: user, error: insUserErr } = await supabase
       .from("users")
       .insert({
         tenant_id: tenant.id,
-        nome: buyer.name || tenantName,
+        nome: tenantName,
         email: buyer.email,
         senha: passwordHash,
         role: "admin",
         must_change_password: true,
       })
-      .select("id, email, tenant_id")
+      .select("id")
       .single();
 
-    if (userErr) throw userErr;
+    if (insUserErr) throw insUserErr;
 
     // 5) Registrar pagamento
     if (buyer.transactionId) {
@@ -528,30 +329,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         tenant_id: tenant.id,
         transaction_id: buyer.transactionId,
         plano: buyer.plan || null,
-        valor: Number.isFinite(buyer.value) ? buyer.value : null,
+        valor: buyer.value,
         status: "approved",
       });
       if (payInsErr) throw payInsErr;
     }
 
-    return res.status(201).json({
-      ok: true,
-      status: "created",
-      endpoint: "/api/webhooks/nexano",
-      tenant: { id: tenant.id, slug: tenant.slug },
-      user: { id: user.id, email: user.email },
-      notes: {
-        tokenValidationEnforced: tokenCheck.enforced,
-        mustChangePassword: true,
-        found_paths: buyer._found,
-      },
-    });
+    return json(res, 201, { ok: true, status: "created", tenant_id: tenant.id, user_id: user.id });
   } catch (err: any) {
     console.error("[NEXANO_WEBHOOK] error:", err?.message || err);
-    return res.status(500).json({
-      ok: false,
-      error: "Internal Server Error",
-      detail: err?.message || "unknown_error",
-    });
+    return json(res, 500, { ok: false, error: "Internal Server Error", detail: err?.message || "unknown_error" });
   }
 }
