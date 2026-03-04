@@ -23,6 +23,14 @@ function getHeader(req: IncomingMessage, name: string): string {
   return (v ?? "").toString();
 }
 
+async function readJsonBody(req: IncomingMessage): Promise<any> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(Buffer.from(chunk));
+  const raw = Buffer.concat(chunks).toString("utf8").trim();
+  if (!raw) return {};
+  return JSON.parse(raw);
+}
+
 function normalizeEmail(email: string): string {
   return (email || "").trim().toLowerCase();
 }
@@ -45,33 +53,13 @@ function maskDoc(doc: string) {
   return `${digits.slice(0, 2)}***${digits.slice(-2)}`;
 }
 
-async function readJsonBody(req: IncomingMessage): Promise<any> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(Buffer.from(chunk));
-  const raw = Buffer.concat(chunks).toString("utf8").trim();
-  if (!raw) return {};
-  return JSON.parse(raw);
-}
-
-// “Desembrulha” valores quando vierem como objeto
 function unwrapPrimitive(v: any): string {
   if (v === null || v === undefined) return "";
   if (typeof v === "string") return v;
   if (typeof v === "number") return String(v);
 
   if (typeof v === "object") {
-    const keys = [
-      "value",
-      "number",
-      "document",
-      "document_number",
-      "cpf",
-      "cnpj",
-      "email",
-      "documentNumber",
-      "taxId",
-      "idNumber",
-    ];
+    const keys = ["value", "number", "document", "document_number", "cpf", "cnpj", "email"];
     for (const k of keys) {
       if (k in v) return unwrapPrimitive(v[k]);
     }
@@ -93,9 +81,11 @@ function safeClone(obj: any) {
 function printPayloadSample(payload: any) {
   const safe = safeClone(payload);
 
-  // mascara client se existir
+  // mascara token e dados sensíveis se existirem
   try {
+    if (safe?.token) safe.token = "***";
     if (safe?.client?.email) safe.client.email = maskEmail(String(safe.client.email));
+
     const d =
       safe?.client?.document ||
       safe?.client?.documentNumber ||
@@ -118,9 +108,9 @@ function printPayloadSample(payload: any) {
 }
 
 /**
- * ✅ Validação do token:
- * 1) tenta headers (x-webhook-token, authorization etc.)
- * 2) se não vier em header, tenta payload.token (Nexano está enviando no body)
+ * ✅ Validação do token (Opção B + body.token)
+ * - aceita headers comuns
+ * - se não vier header, aceita payload.token (Nexano manda assim no seu caso)
  */
 function validateToken(req: IncomingMessage, payload: any) {
   const xWebhookToken = getHeader(req, "x-webhook-token");
@@ -134,10 +124,12 @@ function validateToken(req: IncomingMessage, payload: any) {
   else if (auth.startsWith("Token ")) tokenFromAuth = auth.slice(6);
   else tokenFromAuth = auth;
 
-  const tokenFromBody = unwrapPrimitive(payload?.token); // <- Nexano (pelo seu log)
+  const tokenFromBody = unwrapPrimitive(payload?.token);
+
   const provided =
     xWebhookToken || xNexanoToken || xSignature || xApiKey || tokenFromAuth || tokenFromBody;
 
+  // ✅ log do que chegou
   console.log("[NEXANO_WEBHOOK] token sources present:", {
     has_x_webhook_token: !!xWebhookToken,
     has_x_nexano_token: !!xNexanoToken,
@@ -147,6 +139,7 @@ function validateToken(req: IncomingMessage, payload: any) {
     has_body_token: !!tokenFromBody,
   });
 
+  // Se não configurou token ainda, não bloqueia
   if (!NEXANO_WEBHOOK_TOKEN) return { ok: true, enforced: false };
 
   if (!provided) return { ok: false, enforced: true };
@@ -164,9 +157,8 @@ function getSupabaseAdmin() {
   });
 }
 
-// ✅ Agora adaptado ao objeto Nexano: client / transaction / offerCode
+// ✅ Adaptado ao payload real da Nexano (client / transaction / offerCode)
 function extractBuyer(payload: any) {
-  // Dados do comprador vêm em payload.client
   const email =
     unwrapPrimitive(payload?.client?.email) ||
     unwrapPrimitive(payload?.client?.mail) ||
@@ -188,23 +180,19 @@ function extractBuyer(payload: any) {
     unwrapPrimitive(payload?.client?.nome) ||
     "";
 
-  // transaction id: pode estar em payload.transaction ou payload.transaction.id/code
   const transactionId =
-    unwrapPrimitive(payload?.transaction) ||
     unwrapPrimitive(payload?.transaction?.id) ||
     unwrapPrimitive(payload?.transaction?.code) ||
     unwrapPrimitive(payload?.transaction?.transactionId) ||
+    unwrapPrimitive(payload?.transaction) || // se vier string
     "";
 
-  // plano/oferta: offerCode é chave real no seu log
   const plan =
     unwrapPrimitive(payload?.offerCode) ||
     unwrapPrimitive(payload?.subscription?.plan) ||
     unwrapPrimitive(payload?.subscription?.planCode) ||
     "";
 
-  // valor: muitas plataformas colocam em orderItems
-  // vamos tentar: subscription.amount, transaction.amount, orderItems[0].price/amount
   const value =
     payload?.subscription?.amount ??
     payload?.subscription?.value ??
@@ -225,13 +213,23 @@ function extractBuyer(payload: any) {
   };
 }
 
+function slugifyBase(input: string): string {
+  return (input || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "")
+    .slice(0, 50);
+}
+
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   if ((req.method || "").toUpperCase() !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, error: "Method Not Allowed" });
   }
 
-  // Body
+  // lê body primeiro (precisamos do token do body)
   let payload: any;
   try {
     payload = await readJsonBody(req);
@@ -241,16 +239,16 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   if (WEBHOOK_DEBUG) printPayloadSample(payload);
 
-  // Token (agora pode vir em header OU body.token)
+  // valida token (headers ou body.token)
   const tokenCheck = validateToken(req, payload);
   if (!tokenCheck.ok) {
     return json(res, 401, { ok: false, error: "Unauthorized (invalid webhook token)" });
   }
 
-  const eventType = unwrapPrimitive(payload?.event);
+  const eventType = unwrapPrimitive(payload?.event) || "unknown";
   const buyer = extractBuyer(payload);
 
-  console.log("[NEXANO_WEBHOOK] eventType:", eventType || "unknown");
+  console.log("[NEXANO_WEBHOOK] eventType:", eventType);
   console.log("[NEXANO_WEBHOOK] keys:", Object.keys(payload || {}));
   console.log("[NEXANO_WEBHOOK] extracted:", {
     email: buyer.email ? maskEmail(buyer.email) : "",
@@ -262,26 +260,24 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   });
 
   if (!buyer.email || !buyer.document) {
-    // sempre imprime amostra quando falhar para mapear 100%
     printPayloadSample(payload);
-
     return json(res, 400, {
       ok: false,
       error: "Missing required buyer data (email/document)",
       received: {
-        eventType: eventType || "",
+        eventType,
         email: buyer.email || "",
         document_present: !!buyer.document,
         transactionId: buyer.transactionId || "",
       },
-      hint: "Envie o payload_sample do log (ou confirme os campos dentro de payload.client).",
+      hint: "Os campos devem estar em payload.client.*. Se faltar, envie payload_sample completo.",
     });
   }
 
   try {
     const supabase = getSupabaseAdmin();
 
-    // 1) Idempotência por transaction_id
+    // Idempotência por transaction_id
     if (buyer.transactionId) {
       const { data: existingPay, error: payErr } = await supabase
         .from("pagamentos")
@@ -290,13 +286,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         .maybeSingle();
 
       if (payErr) throw payErr;
-
-      if (existingPay) {
-        return json(res, 200, { ok: true, status: "already_processed" });
-      }
+      if (existingPay) return json(res, 200, { ok: true, status: "already_processed" });
     }
 
-    // 2) Idempotência por email
+    // Idempotência por email
     const { data: existingUser, error: userErr } = await supabase
       .from("users")
       .select("id, tenant_id")
@@ -306,6 +299,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     if (userErr) throw userErr;
 
     if (existingUser) {
+      // registrar pagamento se for novo
       if (buyer.transactionId) {
         await supabase.from("pagamentos").insert({
           tenant_id: existingUser.tenant_id,
@@ -315,21 +309,12 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           status: "approved",
         });
       }
-
       return json(res, 200, { ok: true, status: "user_exists" });
     }
 
-    // 3) Criar tenant (slug simples + sufixo para evitar colisão)
+    // Criar tenant com slug unique
     const tenantName = buyer.name || buyer.email.split("@")[0];
-    const slugBase = tenantName
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)+/g, "")
-      .slice(0, 50);
-
-    const slug = `${slugBase || "corretor"}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const slug = `${slugifyBase(tenantName) || "corretor"}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const { data: tenant, error: tenantErr } = await supabase
       .from("tenants")
@@ -344,7 +329,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
     if (tenantErr) throw tenantErr;
 
-    // 4) Criar usuário com senha temporária hash (CPF/CNPJ)
+    // Criar user com senha temporária (CPF/CNPJ) hash
     const passwordHash = await bcrypt.hash(buyer.document, 10);
 
     const { data: user, error: insUserErr } = await supabase
@@ -362,7 +347,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
     if (insUserErr) throw insUserErr;
 
-    // 5) Registrar pagamento
+    // Registrar pagamento
     if (buyer.transactionId) {
       const { error: payInsErr } = await supabase.from("pagamentos").insert({
         tenant_id: tenant.id,
@@ -374,13 +359,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       if (payInsErr) throw payInsErr;
     }
 
-    return json(res, 201, { ok: true, status: "created", tenant_id: tenant.id, user_id: user.id, slug: tenant.slug });
+    return json(res, 201, {
+      ok: true,
+      status: "created",
+      tenant_id: tenant.id,
+      user_id: user.id,
+      slug: tenant.slug,
+    });
   } catch (err: any) {
     console.error("[NEXANO_WEBHOOK] error:", err?.message || err);
-    return json(res, 500, {
-      ok: false,
-      error: "Internal Server Error",
-      detail: err?.message || "unknown_error",
-    });
+    return json(res, 500, { ok: false, error: "Internal Server Error", detail: err?.message || "unknown_error" });
   }
 }
