@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>ImobiPro | CRM Imobiliário com Automação, Leads e Funil</title>
+  <meta name="description" content="ImobiPro: CRM imobiliário com automação, gestão de imóveis, leads e funil. Acompanhe métricas e feche mais negócios com organização e velocidade." />
+
+  <!-- Canonical (ajuste depois quando for pro domínio final, se quiser) -->
+  <link rel="canonical" href="https://imobi-pro.com/" />
+
+  <!-- Theme -->
+  <meta name="theme-color" content="#000000" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="ImobiPro | CRM Imobiliário com Automação, Leads e Funil" />
+  <meta property="og:description" content="Automação, gestão de imóveis, leads e funil. Métricas em tempo real para vender mais." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="pt_BR" />
+  <!-- Se você quiser um OG image depois: crie /assets/og.png e descomente -->
+  <!-- <meta property="og:image" content="https://imobi-pro.com/assets/og.png" /> -->
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Performance -->
+  <link rel="preload" as="image" href="/assets/logo.png" />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary-blue: #2F5BFF;
+      --dark-blue: #1a2b5f;
+      --light-blue: #5B7FFF;
+      --black: #000000;
+      --white: #FFFFFF;
+      --gray-light: rgba(255, 255, 255, 0.7);
+      --gray-medium: rgba(255, 255, 255, 0.5);
+      --transition: all 0.3s ease;
+      --radius: 16px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--black);
+      color: var(--white);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      color: var(--white);
+      text-decoration: none;
+      z-index: 9999;
+    }
+    .skip-link:focus { left: 12px; outline: 2px solid var(--primary-blue); }
+
+    /* Animated Background */
+    .animated-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+    .animated-dots {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0.10;
+    }
+    .bg-dot {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background-color: var(--primary-blue);
+      border-radius: 50%;
+      will-change: transform, opacity;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      background-color: rgba(0,0,0,0.85);
+      backdrop-filter: blur(10px);
+      height: 80px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .header-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Brand */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+      min-width: 220px;
+    }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .logo {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .logo-text {
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: var(--white);
+      line-height: 1;
+    }
+    .logo-pro { color: var(--primary-blue); }
+    .logo-tagline {
+      font-size: 10px;
+      color: var(--gray-medium);
+      letter-spacing: 2px;
+      margin-top: 6px;
+      text-transform: uppercase;
+    }
+
+    .nav {
+      display: flex;
+      gap: 34px;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--gray-light);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: var(--transition);
+      position: relative;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary-blue);
+      transition: var(--transition);
+    }
+    .nav-link:hover { color: var(--white); }
+    .nav-link:hover::after { width: 100%; }
+
+    .header-btn {
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      background-color: var(--primary-blue);
+      color: var(--white);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .header-btn:hover { background-color: #2648dd; }
+
+    .header-btn.ghost {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .header-btn.ghost:hover { background: rgba(255,255,255,0.10); }
+
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--primary-blue);
+      outline-offset: 3px;
+      border-radius: 12px;
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 80px;
+      background-color: var(--black);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .dashboard-container {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .dashboard-real {
+      position: relative;
+      width: 100%;
+      height: 420px;
+      perspective: 1000px;
+    }
+    .crm-dashboard {
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 20, 40, 0.95);
+      border-radius: var(--radius);
+      border: 1px solid rgba(47, 91, 255, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .crm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      gap: 12px;
+    }
+    .crm-logo {
+      font-weight: 900;
+      font-size: 18px;
+      background: linear-gradient(90deg, #2F5BFF, #6C8CFF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .crm-stats {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--gray-medium);
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    .crm-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: 170px;
+    }
+    .chart-container, .leads-container {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .chart-title {
+      font-size: 12px;
+      color: var(--gray-medium);
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 80px;
+      padding: 0 10px;
+    }
+    .bar {
+      flex: 1;
+      background: linear-gradient(to top, rgba(47, 91, 255, 0.8), rgba(47, 91, 255, 0.3));
+      border-radius: 4px 4px 0 0;
+      position: relative;
+      min-height: 10px;
+      transition: height 0.3s ease;
+    }
+    .bar.active {
+      background: linear-gradient(to top, #00D68F, rgba(0, 214, 143, 0.5));
+    }
+    .bar::after {
+      content: attr(data-value);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--gray-light);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 6px;
+    }
+    .bar:hover::after { opacity: 1; }
+
+    .donut-chart {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto;
+      background: conic-gradient(
+        #2F5BFF 0% 35%,
+        #00D68F 35% 60%,
+        #FFA726 60% 80%,
+        #FF4757 80% 95%,
+        rgba(255, 255, 255, 0.1) 95% 100%
+      );
+    }
+    .center-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: rgba(15, 20, 40, 0.95);
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .chart-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 15px;
+      font-size: 11px;
+      color: var(--gray-medium);
+    }
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .dot.blue { background: #2F5BFF; }
+    .dot.green { background: #00D68F; }
+    .dot.orange { background: #FFA726; }
+    .dot.red { background: #FF4757; }
+
+    .crm-table {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: 10px;
+    }
+    .table-header, .table-row {
+      display: grid;
+      grid-template-columns: 2fr 2fr 1fr 1fr;
+      padding: 12px 15px;
+      font-size: 11px;
+    }
+    .table-header {
+      background: rgba(47, 91, 255, 0.1);
+      color: var(--gray-light);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .table-row {
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+      color: var(--gray-medium);
+      transition: background 0.3s;
+    }
+    .table-row:hover { background: rgba(47, 91, 255, 0.05); }
+
+    .status {
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      text-align: center;
+      width: fit-content;
+    }
+    .status.active { background: rgba(0, 214, 143, 0.2); color: #00D68F; }
+    .status.pending { background: rgba(255, 167, 38, 0.2); color: #FFA726; }
+    .status.completed { background: rgba(47, 91, 255, 0.2); color: #2F5BFF; }
+
+    .floating-card {
+      position: absolute;
+      background: rgba(15, 20, 40, 0.9);
+      border: 1px solid rgba(47, 91, 255, 0.3);
+      border-radius: 14px;
+      padding: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      animation: float 6s ease-in-out infinite;
+      z-index: 2;
+    }
+    .floating-card.performance {
+      top: 16px;
+      right: 24px;
+      width: 160px;
+      animation-delay: 0s;
+    }
+    .floating-card.alerts {
+      bottom: 24px;
+      left: 16px;
+      width: 160px;
+      animation-delay: 2s;
+    }
+    .card-title {
+      font-size: 12px;
+      color: var(--gray-medium);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .kpi {
+      font-size: 32px;
+      font-weight: 900;
+      color: #00D68F;
+      line-height: 1;
+    }
+    .kpi-label {
+      font-size: 10px;
+      color: var(--gray-medium);
+      margin-top: 5px;
+    }
+    .alert-item {
+      font-size: 11px;
+      color: var(--gray-light);
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .alert-item:last-child { border-bottom: none; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(0.5deg); }
+    }
+
+    .hero-content { display: flex; flex-direction: column; gap: 18px; }
+    .hero-title { font-size: 82px; font-weight: 950; line-height: 1; color: var(--white); letter-spacing: -2px; }
+    .hero-pro { color: var(--primary-blue); }
+    .hero-subtitle {
+      font-size: 28px;
+      color: var(--gray-light);
+      max-width: 560px;
+      line-height: 1.35;
+      margin-top: 8px;
+      font-weight: 650;
+    }
+    .hero-description {
+      font-size: 18px;
+      color: var(--gray-medium);
+      max-width: 580px;
+      line-height: 1.65;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    /* Sections */
+    .features, .pricing, .testimonials, .cta, .faq {
+      padding: 100px 0;
+      background-color: var(--black);
+    }
+    .section-header { text-align: center; margin-bottom: 70px; }
+    .section-title { font-size: 48px; font-weight: 900; margin-bottom: 16px; color: var(--white); letter-spacing: -1px; }
+    .section-subtitle { font-size: 20px; color: var(--gray-light); max-width: 680px; margin: 0 auto; }
+    .blue-text { color: var(--primary-blue); }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .feature-card {
+      padding: 40px;
+      border-radius: var(--radius);
+      background-color: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      transition: var(--transition);
+    }
+    .feature-card:hover {
+      border-color: rgba(47, 91, 255, 0.8);
+      transform: translateY(-5px);
+    }
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      background-color: var(--primary-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+    .feature-icon i { font-size: 24px; color: var(--white); }
+    .feature-title { font-size: 24px; font-weight: 800; margin-bottom: 15px; color: var(--white); }
+    .feature-description { color: var(--gray-medium); line-height: 1.6; font-size: 16px; }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      padding: 40px;
+      border-radius: var(--radius);
+      background-color: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
+    .pricing-card:hover { border-color: rgba(255,255,255,0.18); transform: translateY(-3px); }
+
+    .pricing-card.popular {
+      border-color: rgba(47, 91, 255, 0.85);
+      box-shadow: 0 20px 70px rgba(47,91,255,0.18);
+      transform: translateY(-10px);
+    }
+
+    .popular-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 18px;
+      background-color: var(--primary-blue);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 900;
+      border-radius: 999px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .save-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,214,143,0.12);
+      border: 1px solid rgba(0,214,143,0.20);
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .save-badge i { color: #00D68F; }
+
+    .plan-name { font-size: 28px; font-weight: 900; margin-bottom: 8px; color: var(--white); }
+    .plan-description { color: var(--gray-medium); font-size: 14px; margin-bottom: 18px; min-height: 40px; }
+    .plan-price { font-size: 56px; font-weight: 950; color: var(--white); margin-bottom: 5px; line-height: 1; }
+    .plan-period { color: var(--gray-medium); margin-bottom: 24px; font-size: 16px; }
+
+    .plan-features { list-style: none; margin-bottom: 34px; flex-grow: 1; }
+    .plan-features li {
+      padding: 12px 0;
+      color: var(--gray-light);
+      font-size: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .plan-features li:last-child { border-bottom: none; }
+    .plan-features li i { color: var(--primary-blue); font-size: 14px; }
+
+    .pricing-btn {
+      width: 100%;
+      padding: 18px 24px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: auto;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .pricing-btn.primary { background-color: var(--primary-blue); color: var(--white); }
+    .pricing-btn.primary:hover { background-color: #2648dd; }
+    .pricing-btn.secondary {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+    .pricing-btn.secondary:hover { background-color: rgba(255, 255, 255, 0.10); }
+
+    .pricing-footnote {
+      margin-top: 18px;
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .testimonial-card {
+      padding: 40px;
+      border-radius: var(--radius);
+      background-color: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      transition: var(--transition);
+    }
+    .testimonial-card:hover { border-color: rgba(47, 91, 255, 0.60); }
+    .testimonial-rating { display: flex; gap: 5px; margin-bottom: 25px; }
+    .testimonial-rating i { color: var(--primary-blue); font-size: 18px; }
+    .testimonial-content {
+      color: var(--gray-light);
+      font-size: 18px;
+      line-height: 1.7;
+      margin-bottom: 35px;
+      font-style: italic;
+    }
+    .testimonial-author {
+      border-top: 1px solid rgba(255, 255, 255, 0.10);
+      padding-top: 25px;
+    }
+    .author-name { font-weight: 900; color: var(--white); margin-bottom: 5px; font-size: 18px; }
+    .author-info { color: var(--gray-medium); font-size: 14px; }
+
+    .cta-container { max-width: 900px; margin: 0 auto; }
+    .cta-card {
+      padding: 60px;
+      border-radius: var(--radius);
+      text-align: center;
+      background-color: rgba(47, 91, 255, 0.06);
+      border: 1px solid rgba(47, 91, 255, 0.22);
+    }
+    .cta-title { font-size: 48px; font-weight: 950; margin-bottom: 20px; color: var(--white); line-height: 1.1; letter-spacing: -1px; }
+    .cta-text {
+      font-size: 20px;
+      color: var(--gray-light);
+      margin-bottom: 34px;
+      max-width: 650px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.55;
+    }
+    .cta-btn {
+      padding: 18px 34px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      background-color: var(--primary-blue);
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .cta-btn:hover { background-color: #2648dd; }
+
+    /* FAQ */
+    .faq-grid {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+    details.faq-item {
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.10);
+      padding: 18px 18px;
+    }
+    details.faq-item[open] { border-color: rgba(47,91,255,0.45); }
+    summary.faq-q {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.92);
+      font-size: 16px;
+    }
+    summary.faq-q::-webkit-details-marker { display:none; }
+    .faq-a {
+      margin-top: 12px;
+      color: rgba(255,255,255,0.62);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .faq-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(47,91,255,0.10);
+      border: 1px solid rgba(47,91,255,0.18);
+      color: rgba(255,255,255,0.85);
+      flex: none;
+    }
+
+    .footer {
+      padding: 80px 0 40px;
+      background-color: var(--black);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 60px;
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+    }
+
+    .footer-brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .footer-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .footer-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .footer-logo { font-size: 28px; font-weight: 950; color: var(--white); line-height: 1; }
+    .footer-logo-pro { color: var(--primary-blue); }
+    .footer-tagline {
+      font-size: 10px;
+      color: var(--gray-medium);
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    .footer-description { color: var(--gray-medium); font-size: 14px; line-height: 1.6; }
+    .footer-section h4 { color: var(--white); font-weight: 900; margin-bottom: 25px; font-size: 18px; }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 15px; }
+    .footer-links a { color: var(--gray-medium); text-decoration: none; font-size: 15px; transition: var(--transition); }
+    .footer-links a:hover { color: var(--white); }
+    .footer-contact { list-style: none; }
+    .footer-contact li {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--gray-medium);
+      font-size: 15px;
+    }
+    .footer-contact i { color: var(--primary-blue); font-size: 16px; }
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px 0;
+    }
+    .footer-copyright { color: rgba(255, 255, 255, 0.4); font-size: 14px; }
+    .footer-bottom-links { display: flex; gap: 30px; }
+    .footer-bottom-links a { color: rgba(255, 255, 255, 0.4); text-decoration: none; font-size: 14px; transition: var(--transition); }
+    .footer-bottom-links a:hover { color: var(--white); }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-container { grid-template-columns: 1fr; gap: 60px; text-align: center; }
+      .dashboard-real { height: 340px; }
+      .hero-title { font-size: 70px; }
+      .hero-subtitle { font-size: 24px; margin-left: auto; margin-right: auto; }
+      .hero-description { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
+      .chip-row { justify-content: center; }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-card.popular { transform: none; }
+      .floating-card { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .header { height: 70px; }
+      .logo-text { font-size: 24px; }
+      .brand-mark { width: 30px; height: 30px; border-radius: 10px; }
+      .brand { min-width: unset; }
+
+      .nav {
+        display: none;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background-color: rgba(0,0,0,0.92);
+        padding: 28px 20px;
+        flex-direction: column;
+        gap: 22px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .nav.active { display: flex; }
+
+      .mobile-menu-btn {
+        display: block;
+        background: none;
+        border: none;
+        color: var(--white);
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      .header-btn.desktop-only { display: none; }
+
+      .hero-title { font-size: 56px; }
+      .hero-subtitle { font-size: 20px; }
+      .hero-description { font-size: 16px; }
+
+      .section-title { font-size: 36px; }
+      .pricing-grid { grid-template-columns: 1fr; gap: 30px; }
+      .cta-title { font-size: 36px; }
+      .cta-text { font-size: 18px; }
+
+      .features-grid, .testimonials-grid { grid-template-columns: 1fr; }
+      .crm-content { grid-template-columns: 1fr; height: auto; }
+      .table-header, .table-row { grid-template-columns: 1fr 1fr; font-size: 10px; }
+      .cta-card { padding: 42px 22px; }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-menu-btn { display: none; }
+      .header-btn.desktop-only { display: inline-flex; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.8s ease forwards; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { scroll-behavior: auto !important; }
+      .fade-in { animation: none !important; }
+      .floating-card { animation: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="animated-bg" aria-hidden="true">
+    <div class="animated-dots" id="animatedDots"></div>
+  </div>
+
+  <header class="header fade-in">
+    <div class="header-container">
+      <!-- Brand com logo -->
+      <a class="brand" href="#conteudo" aria-label="ImobiPro - voltar ao topo">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="/assets/logo.png" alt="" loading="eager" decoding="async"
+               onerror="this.style.display='none';" />
+        </span>
+
+        <div class="logo">
+          <div class="logo-text">Imobi<span class="logo-pro">Pro</span></div>
+          <div class="logo-tagline">Tecnologia.</div>
+        </div>
+      </a>
+
+      <nav class="nav" aria-label="Navegação principal">
+        <a href="#recursos" class="nav-link">Recursos</a>
+        <a href="#planos" class="nav-link">Planos</a>
+        <a href="#depoimentos" class="nav-link">Depoimentos</a>
+        <a href="#faq" class="nav-link">Dúvidas</a>
+        <a href="#planos" class="header-btn js-scroll-to-plans desktop-only">
+          Começar Agora <i class="fas fa-arrow-right"></i>
+        </a>
+      </nav>
+
+      <button class="mobile-menu-btn" aria-label="Abrir menu" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero fade-in">
+      <div class="hero-container">
+        <div class="dashboard-container" aria-hidden="true">
+          <div class="dashboard-real">
+            <div class="crm-dashboard">
+              <div class="crm-header">
+                <div class="crm-logo">IMOBIPRO CRM</div>
+                <div class="crm-stats">
+                  <div class="stat">📊 42 Leads</div>
+                  <div class="stat">🏠 18 Imóveis</div>
+                  <div class="stat">💰 R$ 2,1M</div>
+                </div>
+              </div>
+
+              <div class="crm-content">
+                <div class="chart-container">
+                  <div class="chart-title">Faturamento Mensal</div>
+                  <div class="bar-chart">
+                    <div class="bar" style="height: 60%;" data-value="Jan: R$ 85k"></div>
+                    <div class="bar" style="height: 80%;" data-value="Fev: R$ 112k"></div>
+                    <div class="bar" style="height: 95%;" data-value="Mar: R$ 158k"></div>
+                    <div class="bar active" style="height: 100%;" data-value="Abr: R$ 197k"></div>
+                    <div class="bar" style="height: 75%;" data-value="Mai: R$ 148k"></div>
+                    <div class="bar" style="height: 65%;" data-value="Jun: R$ 98k"></div>
+                  </div>
+                </div>
+
+                <div class="leads-container">
+                  <div class="chart-title">Leads por Status</div>
+                  <div class="donut-chart" aria-label="Distribuição de leads por status">
+                    <div class="center-dot"></div>
+                  </div>
+                  <div class="chart-legend">
+                    <div><span class="dot blue"></span> Contatar</div>
+                    <div><span class="dot green"></span> Agendado</div>
+                    <div><span class="dot orange"></span> Visita</div>
+                    <div><span class="dot red"></span> Proposta</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="crm-table" aria-label="Tabela de leads (exemplo)">
+                <div class="table-header">
+                  <div>Cliente</div>
+                  <div>Imóvel</div>
+                  <div>Status</div>
+                  <div>Valor</div>
+                </div>
+                <div class="table-row">
+                  <div>João Silva</div>
+                  <div>Apto. Higienópolis</div>
+                  <div class="status active">Ativo</div>
+                  <div>R$ 850.000</div>
+                </div>
+                <div class="table-row">
+                  <div>Maria Santos</div>
+                  <div>Casa Moema</div>
+                  <div class="status pending">Visita</div>
+                  <div>R$ 1,2M</div>
+                </div>
+                <div class="table-row">
+                  <div>Carlos Oliveira</div>
+                  <div>Sala Comercial</div>
+                  <div class="status completed">Fechado</div>
+                  <div>R$ 420.000</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="floating-card performance">
+              <div class="card-title">🏆 Performance</div>
+              <div class="kpi">+42%</div>
+              <div class="kpi-label">Conversão vs Mês Passado</div>
+            </div>
+
+            <div class="floating-card alerts">
+              <div class="card-title">🔔 Alertas</div>
+              <div class="alert-item">3 leads aguardando</div>
+              <div class="alert-item">2 contratos pendentes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-content">
+          <h1 class="hero-title">Imobi<span class="hero-pro">Pro</span></h1>
+
+          <p class="hero-subtitle">Organize leads, imóveis e follow-up — e feche mais rápido.</p>
+
+          <p class="hero-description">
+            CRM imobiliário com automação e visão do funil para você não perder oportunidades.
+            Centralize tudo e tome decisões com base em dados.
+          </p>
+
+          <div class="hero-actions">
+            <a href="#planos" class="header-btn js-scroll-to-plans">
+              Ver Planos <i class="fas fa-arrow-down"></i>
+            </a>
+            <a href="#recursos" class="header-btn ghost">
+              Ver Recursos <i class="fas fa-layer-group"></i>
+            </a>
+          </div>
+
+          <div class="chip-row" aria-label="Destaques do produto">
+            <span class="chip"><i class="fas fa-check"></i> Funil + follow-up</span>
+            <span class="chip"><i class="fas fa-check"></i> Gestão de imóveis</span>
+            <span class="chip"><i class="fas fa-check"></i> Analytics essencial</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="recursos" class="features fade-in">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Recursos que <span class="blue-text">transformam</span></h2>
+          <p class="section-subtitle">Tudo o que você precisa para organizar sua operação e vender com consistência.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+            <h3 class="feature-title">Automação Inteligente</h3>
+            <p class="feature-description">Automatize lembretes, contatos e rotinas de atendimento para não perder timing.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-building"></i></div>
+            <h3 class="feature-title">Gestão Completa</h3>
+            <p class="feature-description">Imóveis, clientes e negociações centralizados em um só lugar.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+            <h3 class="feature-title">Analytics Avançado</h3>
+            <p class="feature-description">Veja o que está funcionando e ajuste seu processo comercial com dados.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-users"></i></div>
+            <h3 class="feature-title">CRM Imobiliário</h3>
+            <p class="feature-description">Organize relacionamento e follow-up com leads para aumentar conversão.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3 class="feature-title">Boas práticas (LGPD)</h3>
+            <p class="feature-description">Estrutura pensada para segurança, privacidade e responsabilidade com dados.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><i class="fas fa-globe"></i></div>
+            <h3 class="feature-title">Acesso em Nuvem</h3>
+            <p class="feature-description">Use no celular ou no computador. Seu CRM acompanha você no dia a dia.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="planos" class="pricing fade-in">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Planos que <span class="blue-text">escalam</span> com você</h2>
+          <p class="section-subtitle">As funcionalidades são as mesmas em todos os planos — o que muda é o período e o valor.</p>
+        </div>
+
+        <div class="pricing-grid">
+          <!-- Mensal -->
+          <div class="pricing-card">
+            <h3 class="plan-name">Mensal</h3>
+            <p class="plan-description">Flexibilidade total para começar agora.</p>
+
+            <span class="save-badge" title="Comparado ao valor mensal por 6 meses (R$ 582)">
+              <i class="fas fa-piggy-bank"></i> Economize R$ 0
+            </span>
+
+            <div class="plan-price">R$ 97</div>
+            <p class="plan-period">/mês</p>
+
+            <ul class="plan-features">
+              <li><i class="fas fa-check"></i> Todas as funcionalidades</li>
+              <li><i class="fas fa-check"></i> Atualizações incluídas</li>
+              <li><i class="fas fa-check"></i> Acesso em nuvem (PC e celular)</li>
+              <li><i class="fas fa-check"></i> Suporte por email</li>
+            </ul>
+
+            <a class="pricing-btn secondary"
+              href="https://checkout.nexano.com.br/checkout/cmm6s7hwb016j1rmj3wse63np?offer=72D7TSV"
+              target="_blank" rel="noopener noreferrer">
+              Assinar Mensal <i class="fas fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+
+          <!-- Semestral -->
+          <div class="pricing-card popular">
+            <div class="popular-badge">Melhor custo-benefício</div>
+            <h3 class="plan-name">Semestral</h3>
+            <p class="plan-description">Economia sem perder flexibilidade.</p>
+
+            <span class="save-badge" title="Comparado ao valor mensal por 6 meses (R$ 582)">
+              <i class="fas fa-piggy-bank"></i> Economize R$ 185
+            </span>
+
+            <div class="plan-price">R$ 397</div>
+            <p class="plan-period">/6 meses</p>
+
+            <ul class="plan-features">
+              <li><i class="fas fa-check"></i> Todas as funcionalidades</li>
+              <li><i class="fas fa-check"></i> Atualizações incluídas</li>
+              <li><i class="fas fa-check"></i> Acesso em nuvem (PC e celular)</li>
+              <li><i class="fas fa-check"></i> Suporte por email</li>
+            </ul>
+
+            <a class="pricing-btn primary"
+              href="https://checkout.nexano.com.br/checkout/cmm6s7hwb016j1rmj3wse63np?offer=E5P0U6B"
+              target="_blank" rel="noopener noreferrer">
+              Assinar Semestral <i class="fas fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+
+          <!-- Anual -->
+          <div class="pricing-card">
+            <h3 class="plan-name">Anual</h3>
+            <p class="plan-description">Maior economia e previsibilidade por 12 meses.</p>
+
+            <span class="save-badge" title="Comparado ao valor mensal por 12 meses (R$ 1164)">
+              <i class="fas fa-piggy-bank"></i> Economize R$ 467
+            </span>
+
+            <div class="plan-price">R$ 697</div>
+            <p class="plan-period">/ano</p>
+
+            <ul class="plan-features">
+              <li><i class="fas fa-check"></i> Todas as funcionalidades</li>
+              <li><i class="fas fa-check"></i> Atualizações incluídas</li>
+              <li><i class="fas fa-check"></i> Acesso em nuvem (PC e celular)</li>
+              <li><i class="fas fa-check"></i> Suporte por email</li>
+            </ul>
+
+            <a class="pricing-btn secondary"
+              href="https://checkout.nexano.com.br/checkout/cmm6s7hwb016j1rmj3wse63np?offer=Q71NMPM"
+              target="_blank" rel="noopener noreferrer">
+              Assinar Anual <i class="fas fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+
+        <p class="pricing-footnote">
+          Recomendação: se você pretende usar por mais de 2 meses, o Semestral costuma ser a melhor escolha.
+        </p>
+      </div>
+    </section>
+
+    <section id="depoimentos" class="testimonials fade-in">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Quem confia na <span class="blue-text">ImobiPro</span></h2>
+          <p class="section-subtitle">Feedbacks de quem busca mais organização e velocidade no atendimento.</p>
+        </div>
+
+        <div class="testimonials-grid">
+          <div class="testimonial-card">
+            <div class="testimonial-rating">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <p class="testimonial-content">"O ImobiPro trouxe clareza no nosso funil. Hoje o time sabe o próximo passo de cada lead."</p>
+            <div class="testimonial-author">
+              <p class="author-name">Maria Silva</p>
+              <p class="author-info">Diretora Comercial · Imóveis Premium</p>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testimonial-rating">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <p class="testimonial-content">"O follow-up ficou mais simples. Diminuiu muito o número de oportunidades perdidas."</p>
+            <div class="testimonial-author">
+              <p class="author-name">Carlos Eduardo</p>
+              <p class="author-info">Corretor Autônomo</p>
+            </div>
+          </div>
+
+          <div class="testimonial-card">
+            <div class="testimonial-rating">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+            <p class="testimonial-content">"Ter tudo num lugar só ajudou a padronizar atendimento e acelerar proposta e fechamento."</p>
+            <div class="testimonial-author">
+              <p class="author-name">Ana Paula Ferreira</p>
+              <p class="author-info">CEO · Grupo Habitat</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="faq fade-in">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">Dúvidas <span class="blue-text">frequentes</span></h2>
+          <p class="section-subtitle">Tudo o que você precisa saber antes de escolher o período.</p>
+        </div>
+
+        <div class="faq-grid">
+          <details class="faq-item">
+            <summary class="faq-q">
+              <span>Os três planos têm as mesmas funcionalidades?</span>
+              <span class="faq-icon"><i class="fas fa-check-circle"></i></span>
+            </summary>
+            <div class="faq-a">
+              Sim. As funcionalidades são iguais em todos os planos. O que muda é apenas o período de cobrança (mensal, semestral ou anual) e o valor.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">
+              <span>Qual plano você recomenda?</span>
+              <span class="faq-icon"><i class="fas fa-star"></i></span>
+            </summary>
+            <div class="faq-a">
+              Se você já decidiu usar o ImobiPro para organizar leads e imóveis de forma contínua, o Semestral geralmente é o melhor custo-benefício. Para máxima economia, escolha o Anual.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">
+              <span>Depois de pagar, como eu acesso?</span>
+              <span class="faq-icon"><i class="fas fa-door-open"></i></span>
+            </summary>
+            <div class="faq-a">
+              Após concluir o checkout, você segue o fluxo de acesso. 
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">
+              <span>Funciona no celular e no computador?</span>
+              <span class="faq-icon"><i class="fas fa-mobile-alt"></i></span>
+            </summary>
+            <div class="faq-a">
+              Sim. A interface é responsiva e funciona no celular, tablet e computador — ideal para uso em visita, plantão e atendimento remoto.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">
+              <span>Recebo atualizações sem pagar a mais?</span>
+              <span class="faq-icon"><i class="fas fa-rocket"></i></span>
+            </summary>
+            <div class="faq-a">
+              Sim. Atualizações e melhorias do produto ficam incluídas enquanto o seu plano estiver ativo.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">
+              <span>Posso trocar de plano depois?</span>
+              <span class="faq-icon"><i class="fas fa-exchange-alt"></i></span>
+            </summary>
+            <div class="faq-a">
+              Sim. Você pode mudar o período quando quiser. A melhor estratégia é começar no Mensal e migrar para Semestral/Anual assim que estiver usando com frequência.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-q">
+              <span>O que eu ganho escolhendo Semestral ou Anual?</span>
+              <span class="faq-icon"><i class="fas fa-piggy-bank"></i></span>
+            </summary>
+            <div class="faq-a">
+              Você paga menos por período e reduz fricção (não precisa renovar todo mês). É ideal para quem quer previsibilidade e foco em vendas.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer fade-in">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-brand-row">
+            <span class="footer-mark" aria-hidden="true">
+              <img src="/assets/logo.png" alt="" loading="lazy" decoding="async"
+                   onerror="this.style.display='none';" />
+            </span>
+            <div class="footer-logo">Imobi<span class="footer-logo-pro">Pro</span></div>
+          </div>
+
+          <div class="footer-tagline">Tecnologia.</div>
+          <p class="footer-description">
+            Plataforma para organizar seu atendimento, controlar imóveis e acompanhar métricas do funil.
+          </p>
+        </div>
+
+        <div class="footer-section">
+          <h4>Produto</h4>
+          <ul class="footer-links">
+            <li><a href="#recursos">Recursos</a></li>
+            <li><a href="#planos">Planos</a></li>
+            <li><a href="#depoimentos">Depoimentos</a></li>
+            <li><a href="#faq">Dúvidas</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Empresa</h4>
+          <ul class="footer-links">
+            <li><a href="#conteudo">Sobre</a></li>
+            <li><a href="#planos">Preços</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-section">
+          <h4>Contato</h4>
+          <ul class="footer-contact">
+            <li><i class="fas fa-envelope"></i> contato@imobi-pro.com</li>
+            <li><i class="fas fa-map-marker-alt"></i> Brasil</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-copyright">© 2024 ImobiPro. Todos os direitos reservados.</p>
+        <div class="footer-bottom-links">
+          <a href="#conteudo">Privacidade</a>
+          <a href="#conteudo">Termos</a>
+          <a href="#conteudo">Cookies</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function createAnimatedDots() {
+      const container = document.getElementById('animatedDots');
+      if (!container) return;
+
+      const dotCount = 48;
+
+      for (let i = 0; i < dotCount; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'bg-dot';
+
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        const size = Math.random() * 2.5 + 1;
+        const delay = Math.random() * 3;
+        const moveX = Math.random() * 22 - 11;
+        const moveY = Math.random() * 22 - 11;
+        const dur = 7 + Math.random() * 10;
+
+        dot.style.left = `${x}%`;
+        dot.style.top = `${y}%`;
+        dot.style.width = `${size}px`;
+        dot.style.height = `${size}px`;
+        dot.style.animation = `moveDot_${i} ${dur}s ease-in-out ${delay}s infinite alternate`;
+
+        const style = document.createElement('style');
+        style.textContent = `
+          @keyframes moveDot_${i} {
+            0% { transform: translate(0, 0); opacity: 0.10; }
+            100% { transform: translate(${moveX}px, ${moveY}px); opacity: 0.28; }
+          }
+        `;
+        document.head.appendChild(style);
+        container.appendChild(dot);
+      }
+    }
+
+    function scrollToPlans() {
+      const target = document.getElementById('planos');
+      if (target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+      else window.location.hash = '#planos';
+    }
+
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    const nav = document.querySelector('.nav');
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const targetId = this.getAttribute('href');
+        if (!targetId || targetId === '#') return;
+        e.preventDefault();
+
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          window.scrollTo({ top: targetElement.offsetTop - 80, behavior: 'smooth' });
+          if (window.innerWidth <= 768 && nav) nav.classList.remove('active');
+        }
+      });
+    });
+
+    if (mobileMenuBtn && nav) {
+      mobileMenuBtn.addEventListener('click', () => {
+        const isOpen = nav.classList.toggle('active');
+        mobileMenuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+          if (!nav.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+            nav.classList.remove('active');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+          }
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const year = new Date().getFullYear();
+      const el = document.querySelector('.footer-copyright');
+      if (el) el.innerHTML = `© ${year} ImobiPro. Todos os direitos reservados.`;
+
+      createAnimatedDots();
+
+      document.querySelectorAll('.js-scroll-to-plans').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          scrollToPlans();
+          if (window.innerWidth <= 768 && nav) nav.classList.remove('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>
