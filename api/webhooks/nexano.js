@@ -1,65 +1,71 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import { createClient } from "@supabase/supabase-js";
-import bcrypt from "bcryptjs";
+const { createClient } = require("@supabase/supabase-js");
+const bcrypt = require("bcryptjs");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
 
-// ✅ Lista de tokens (1 endpoint, vários webhooks/tokens)
+// Lista de tokens (vários webhooks / tokens diferentes)
 const NEXANO_WEBHOOK_TOKENS = (process.env.NEXANO_WEBHOOK_TOKENS || "")
   .split(",")
   .map((t) => t.trim())
   .filter(Boolean);
 
-// Debug
 const WEBHOOK_DEBUG = (process.env.WEBHOOK_DEBUG || "").toLowerCase() === "true";
 
-type AnyObj = Record<string, any>;
-
-function json(res: ServerResponse, status: number, body: AnyObj) {
+function json(res, status, body) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(body));
 }
 
-function getHeader(req: IncomingMessage, name: string): string {
-  const v = req.headers[name.toLowerCase()];
-  if (Array.isArray(v)) return v[0] ?? "";
-  return (v ?? "").toString();
+function getHeader(req, name) {
+  const v = req.headers[(name || "").toLowerCase()];
+  if (Array.isArray(v)) return v[0] || "";
+  return (v || "").toString();
 }
 
-async function readJsonBody(req: IncomingMessage): Promise<any> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(Buffer.from(chunk));
-  const raw = Buffer.concat(chunks).toString("utf8").trim();
-  if (!raw) return {};
-  return JSON.parse(raw);
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = "";
+    req.on("data", (chunk) => (data += chunk));
+    req.on("end", () => {
+      if (!data.trim()) return resolve({});
+      try {
+        resolve(JSON.parse(data));
+      } catch (e) {
+        reject(e);
+      }
+    });
+    req.on("error", reject);
+  });
 }
 
-function normalizeEmail(email: string): string {
+function normalizeEmail(email) {
   return (email || "").trim().toLowerCase();
 }
 
-function normalizeDocument(doc: string): string {
+function normalizeDocument(doc) {
   return (doc || "").replace(/\D/g, "");
 }
 
-function unwrapPrimitive(v: any): string {
+function unwrapPrimitive(v) {
   if (v === null || v === undefined) return "";
   if (typeof v === "string") return v;
   if (typeof v === "number") return String(v);
+
   if (typeof v === "object") {
-    for (const k of ["value", "number", "id", "code", "cpf", "cnpj", "document", "documentNumber", "email"]) {
-      if (k in v) return unwrapPrimitive(v[k]);
+    const keys = ["value", "number", "id", "code", "cpf", "cnpj", "document", "documentNumber", "email"];
+    for (const k of keys) {
+      if (v && Object.prototype.hasOwnProperty.call(v, k)) return unwrapPrimitive(v[k]);
     }
-    const keys = Object.keys(v);
-    if (keys.length === 1) return unwrapPrimitive(v[keys[0]]);
+    const onlyKeys = Object.keys(v || {});
+    if (onlyKeys.length === 1) return unwrapPrimitive(v[onlyKeys[0]]);
   }
   return "";
 }
 
-function safeClone(obj: any) {
+function safeClone(obj) {
   try {
     return JSON.parse(JSON.stringify(obj));
   } catch {
@@ -67,20 +73,21 @@ function safeClone(obj: any) {
   }
 }
 
-function printPayloadSample(payload: any) {
+function printPayloadSample(payload) {
   const safe = safeClone(payload);
   try {
-    if (safe?.token) safe.token = "***";
-    if (safe?.client?.email) safe.client.email = "***";
-    if (safe?.client?.document) safe.client.document = "***";
-    if (safe?.client?.cpf) safe.client.cpf = "***";
-    if (safe?.client?.cnpj) safe.client.cnpj = "***";
+    if (safe && safe.token) safe.token = "***";
+    if (safe && safe.client) {
+      if (safe.client.email) safe.client.email = "***";
+      if (safe.client.document) safe.client.document = "***";
+      if (safe.client.cpf) safe.client.cpf = "***";
+      if (safe.client.cnpj) safe.client.cnpj = "***";
+    }
   } catch {}
   console.log("[NEXANO_WEBHOOK] payload_sample:", JSON.stringify(safe).slice(0, 6000));
 }
 
-function validateToken(req: IncomingMessage, payload: any) {
-  // headers (pode vir vazio na Nexano)
+function validateToken(req, payload) {
   const xWebhookToken = getHeader(req, "x-webhook-token");
   const auth = getHeader(req, "authorization");
   let tokenFromAuth = "";
@@ -88,9 +95,7 @@ function validateToken(req: IncomingMessage, payload: any) {
   else if (auth.startsWith("Token ")) tokenFromAuth = auth.slice(6);
   else tokenFromAuth = auth;
 
-  // ✅ token vem no body (seu caso)
-  const tokenFromBody = unwrapPrimitive(payload?.token);
-
+  const tokenFromBody = unwrapPrimitive(payload && payload.token);
   const provided = xWebhookToken || tokenFromAuth || tokenFromBody;
 
   console.log("[NEXANO_WEBHOOK] token sources present:", {
@@ -100,12 +105,9 @@ function validateToken(req: IncomingMessage, payload: any) {
     tokens_configured_count: NEXANO_WEBHOOK_TOKENS.length,
   });
 
-  // se você ainda não configurou tokens, não bloqueia (mas recomendo configurar)
   if (NEXANO_WEBHOOK_TOKENS.length === 0) return { ok: true, enforced: false };
-
   if (!provided) return { ok: false, enforced: true };
   if (!NEXANO_WEBHOOK_TOKENS.includes(provided)) return { ok: false, enforced: true };
-
   return { ok: true, enforced: true };
 }
 
@@ -118,8 +120,8 @@ function getSupabaseAdmin() {
   });
 }
 
-function extractCommon(payload: any) {
-  const event = unwrapPrimitive(payload?.event) || "unknown";
+function extractCommon(payload) {
+  const event = unwrapPrimitive(payload && payload.event) || "unknown";
 
   const email =
     unwrapPrimitive(payload?.client?.email) ||
@@ -150,13 +152,9 @@ function extractCommon(payload: any) {
   const offerCode = unwrapPrimitive(payload?.offerCode) || "";
 
   const value =
-    payload?.subscription?.amount ??
-    payload?.subscription?.value ??
-    payload?.transaction?.amount ??
-    payload?.transaction?.value ??
-    payload?.orderItems?.[0]?.amount ??
-    payload?.orderItems?.[0]?.value ??
-    payload?.orderItems?.[0]?.price ??
+    (payload && payload.subscription && (payload.subscription.amount ?? payload.subscription.value)) ??
+    (payload && payload.transaction && (payload.transaction.amount ?? payload.transaction.value)) ??
+    (payload && payload.orderItems && payload.orderItems[0] && (payload.orderItems[0].amount ?? payload.orderItems[0].value ?? payload.orderItems[0].price)) ??
     null;
 
   return {
@@ -170,7 +168,7 @@ function extractCommon(payload: any) {
   };
 }
 
-function mapOfferToPlan(offerCode: string) {
+function mapOfferToPlan(offerCode) {
   switch ((offerCode || "").toUpperCase()) {
     case "72D7TSV":
       return { plan: "mensal", fallbackPrice: 97 };
@@ -183,20 +181,23 @@ function mapOfferToPlan(offerCode: string) {
   }
 }
 
-// status com fallback (caso seu enum/tabela não aceite "suspenso")
-function normalizeTenantStatus(target: "ativo" | "suspenso") {
-  if (target === "ativo") return "ativo";
-  // fallback comum
-  return "suspenso";
+function slugifyBase(input) {
+  return (input || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "")
+    .slice(0, 50);
 }
 
-export default async function handler(req: IncomingMessage, res: ServerResponse) {
+module.exports = async (req, res) => {
   if ((req.method || "").toUpperCase() !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, error: "Method Not Allowed" });
   }
 
-  let payload: any;
+  let payload;
   try {
     payload = await readJsonBody(req);
   } catch {
@@ -225,8 +226,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     token_enforced: tokenCheck.enforced,
   });
 
-  // helpers
-  async function getUserByEmail(email: string) {
+  async function getUserByEmail(email) {
     if (!email) return null;
     const { data, error } = await supabase
       .from("users")
@@ -237,7 +237,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return data;
   }
 
-  async function upsertPayment(tenantId: string, status: string) {
+  async function upsertPayment(tenantId, status) {
     if (!common.transactionId) return;
 
     const { data: existing, error: chkErr } = await supabase
@@ -248,32 +248,23 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     if (chkErr) throw chkErr;
     if (existing) return;
 
-    // ✅ Insere apenas colunas mínimas (não quebra se você não criou colunas extras)
     const { error } = await supabase.from("pagamentos").insert({
       tenant_id: tenantId,
       transaction_id: common.transactionId,
       plano: mapped.plan,
       valor: typeof common.value === "number" ? common.value : mapped.fallbackPrice,
       status,
-    } as any);
-
+    });
     if (error) throw error;
   }
 
-  async function setTenantStatus(tenantId: string, target: "ativo" | "suspenso") {
-    const status = normalizeTenantStatus(target);
-
-    const { error } = await supabase
-      .from("tenants")
-      .update({ status })
-      .eq("id", tenantId);
-
+  async function setTenantStatus(tenantId, status) {
+    const { error } = await supabase.from("tenants").update({ status }).eq("id", tenantId);
     if (error) throw error;
   }
 
   try {
     switch (common.event) {
-      // ✅ pagamento aprovado: cria conta (se não existir) e ativa
       case "TRANSACTION_PAID": {
         if (!common.email || !common.document) {
           printPayloadSample(payload);
@@ -293,10 +284,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
               slug,
               plano: mapped.plan,
               status: "ativo",
-            } as any)
+            })
             .select("id, slug")
             .single();
-
           if (tenantErr) throw tenantErr;
 
           const passwordHash = await bcrypt.hash(common.document, 10);
@@ -308,8 +298,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
             senha: passwordHash,
             role: "admin",
             must_change_password: true,
-          } as any);
-
+          });
           if (userErr) throw userErr;
 
           await upsertPayment(tenant.id, "approved");
@@ -321,7 +310,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         return json(res, 200, { ok: true, status: "user_exists_payment_registered" });
       }
 
-      // ❌ pagamento falhou/recusado: suspende
       case "TRANSACTION_FAILED":
       case "TRANSACTION_REFUSED":
       case "TRANSACTION_CANCELED": {
@@ -333,49 +321,38 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         return json(res, 200, { ok: true, status: "processed_failed" });
       }
 
-      // 🧾 assinatura cancelada: suspende
       case "SUBSCRIPTION_CANCELED":
       case "SUBSCRIPTION_CANCELLED": {
         const user = await getUserByEmail(common.email);
-        if (user) {
-          await setTenantStatus(user.tenant_id, "suspenso");
-        }
+        if (user) await setTenantStatus(user.tenant_id, "suspenso");
         return json(res, 200, { ok: true, status: "processed_subscription_canceled" });
       }
 
-      // ✅ assinatura ativa/renovada: ativa
       case "SUBSCRIPTION_RENEWED":
       case "SUBSCRIPTION_REACTIVATED":
       case "SUBSCRIPTION_ACTIVE": {
         const user = await getUserByEmail(common.email);
-        if (user) {
-          await setTenantStatus(user.tenant_id, "ativo");
-        }
+        if (user) await setTenantStatus(user.tenant_id, "ativo");
         return json(res, 200, { ok: true, status: "processed_subscription_active" });
       }
 
-      // 🔁 reembolso/chargeback: suspende
       case "REFUND":
       case "CHARGEBACK": {
         const user = await getUserByEmail(common.email);
-        if (user) {
-          await setTenantStatus(user.tenant_id, "suspenso");
-        }
+        if (user) await setTenantStatus(user.tenant_id, "suspenso");
         return json(res, 200, { ok: true, status: "processed_refund_or_chargeback" });
       }
 
       default:
-        // Não falha: só registra que ignorou
         return json(res, 200, { ok: true, status: "ignored_unhandled_event", event: common.event });
     }
-  } catch (err: any) {
-    // ✅ Agora você verá o motivo real do 500
-    console.error("[NEXANO_WEBHOOK] fatal error:", err?.message || err);
+  } catch (err) {
+    console.error("[NEXANO_WEBHOOK] fatal error:", err && err.message ? err.message : err);
     return json(res, 500, {
       ok: false,
       error: "Internal Server Error",
-      detail: err?.message || "unknown_error",
+      detail: err && err.message ? err.message : "unknown_error",
       event: common.event,
     });
   }
-}
+};
