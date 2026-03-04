@@ -2,16 +2,6 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 
-/**
- * Webhook Nexano → ImobiPro
- * Rota: POST /api/webhooks/nexano
- *
- * - Token via headers (vários formatos)
- * - Hash senha temporária (CPF/CNPJ)
- * - must_change_password = true
- * - Idempotência por transaction_id e por email
- */
-
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
@@ -63,13 +53,25 @@ async function readJsonBody(req: IncomingMessage): Promise<any> {
   return JSON.parse(raw);
 }
 
+// “Desembrulha” valores quando vierem como objeto
 function unwrapPrimitive(v: any): string {
   if (v === null || v === undefined) return "";
   if (typeof v === "string") return v;
   if (typeof v === "number") return String(v);
 
   if (typeof v === "object") {
-    const keys = ["value", "number", "document", "document_number", "cpf", "cnpj", "email"];
+    const keys = [
+      "value",
+      "number",
+      "document",
+      "document_number",
+      "cpf",
+      "cnpj",
+      "email",
+      "documentNumber",
+      "taxId",
+      "idNumber",
+    ];
     for (const k of keys) {
       if (k in v) return unwrapPrimitive(v[k]);
     }
@@ -88,8 +90,39 @@ function safeClone(obj: any) {
   }
 }
 
-function validateToken(req: IncomingMessage) {
-  // Aceita múltiplos padrões
+function printPayloadSample(payload: any) {
+  const safe = safeClone(payload);
+
+  // mascara client se existir
+  try {
+    if (safe?.client?.email) safe.client.email = maskEmail(String(safe.client.email));
+    const d =
+      safe?.client?.document ||
+      safe?.client?.documentNumber ||
+      safe?.client?.cpf ||
+      safe?.client?.cnpj ||
+      safe?.client?.taxId ||
+      safe?.client?.idNumber;
+
+    if (d) {
+      if (safe?.client?.document) safe.client.document = maskDoc(String(d));
+      if (safe?.client?.documentNumber) safe.client.documentNumber = maskDoc(String(d));
+      if (safe?.client?.cpf) safe.client.cpf = maskDoc(String(d));
+      if (safe?.client?.cnpj) safe.client.cnpj = maskDoc(String(d));
+      if (safe?.client?.taxId) safe.client.taxId = maskDoc(String(d));
+      if (safe?.client?.idNumber) safe.client.idNumber = maskDoc(String(d));
+    }
+  } catch {}
+
+  console.log("[NEXANO_WEBHOOK] payload_sample:", JSON.stringify(safe).slice(0, 6000));
+}
+
+/**
+ * ✅ Validação do token:
+ * 1) tenta headers (x-webhook-token, authorization etc.)
+ * 2) se não vier em header, tenta payload.token (Nexano está enviando no body)
+ */
+function validateToken(req: IncomingMessage, payload: any) {
   const xWebhookToken = getHeader(req, "x-webhook-token");
   const xNexanoToken = getHeader(req, "x-nexano-token");
   const xSignature = getHeader(req, "x-webhook-signature");
@@ -101,19 +134,24 @@ function validateToken(req: IncomingMessage) {
   else if (auth.startsWith("Token ")) tokenFromAuth = auth.slice(6);
   else tokenFromAuth = auth;
 
-  const provided = xWebhookToken || xNexanoToken || xSignature || xApiKey || tokenFromAuth;
+  const tokenFromBody = unwrapPrimitive(payload?.token); // <- Nexano (pelo seu log)
+  const provided =
+    xWebhookToken || xNexanoToken || xSignature || xApiKey || tokenFromAuth || tokenFromBody;
 
-  console.log("[NEXANO_WEBHOOK] token headers present:", {
+  console.log("[NEXANO_WEBHOOK] token sources present:", {
     has_x_webhook_token: !!xWebhookToken,
     has_x_nexano_token: !!xNexanoToken,
     has_x_webhook_signature: !!xSignature,
     has_x_api_key: !!xApiKey,
     has_authorization: !!auth,
+    has_body_token: !!tokenFromBody,
   });
 
   if (!NEXANO_WEBHOOK_TOKEN) return { ok: true, enforced: false };
+
   if (!provided) return { ok: false, enforced: true };
   if (provided !== NEXANO_WEBHOOK_TOKEN) return { ok: false, enforced: true };
+
   return { ok: true, enforced: true };
 }
 
@@ -126,56 +164,55 @@ function getSupabaseAdmin() {
   });
 }
 
+// ✅ Agora adaptado ao objeto Nexano: client / transaction / offerCode
 function extractBuyer(payload: any) {
+  // Dados do comprador vêm em payload.client
   const email =
-    unwrapPrimitive(payload?.customer?.email) ||
-    unwrapPrimitive(payload?.buyer?.email) ||
-    unwrapPrimitive(payload?.payer?.email) ||
-    unwrapPrimitive(payload?.data?.customer?.email) ||
-    unwrapPrimitive(payload?.data?.buyer?.email) ||
-    unwrapPrimitive(payload?.data?.email) ||
+    unwrapPrimitive(payload?.client?.email) ||
+    unwrapPrimitive(payload?.client?.mail) ||
+    unwrapPrimitive(payload?.client?.emailAddress) ||
     "";
 
   const document =
-    unwrapPrimitive(payload?.customer?.document) ||
-    unwrapPrimitive(payload?.customer?.document_number) ||
-    unwrapPrimitive(payload?.customer?.cpf) ||
-    unwrapPrimitive(payload?.customer?.cnpj) ||
-    unwrapPrimitive(payload?.buyer?.document) ||
-    unwrapPrimitive(payload?.data?.customer?.document) ||
-    unwrapPrimitive(payload?.data?.customer?.document_number) ||
-    unwrapPrimitive(payload?.data?.customer?.cpf) ||
-    unwrapPrimitive(payload?.data?.customer?.cnpj) ||
+    unwrapPrimitive(payload?.client?.document) ||
+    unwrapPrimitive(payload?.client?.documentNumber) ||
+    unwrapPrimitive(payload?.client?.cpf) ||
+    unwrapPrimitive(payload?.client?.cnpj) ||
+    unwrapPrimitive(payload?.client?.taxId) ||
+    unwrapPrimitive(payload?.client?.idNumber) ||
     "";
 
   const name =
-    unwrapPrimitive(payload?.customer?.name) ||
-    unwrapPrimitive(payload?.buyer?.name) ||
-    unwrapPrimitive(payload?.data?.customer?.name) ||
-    unwrapPrimitive(payload?.data?.buyer?.name) ||
+    unwrapPrimitive(payload?.client?.name) ||
+    unwrapPrimitive(payload?.client?.fullName) ||
+    unwrapPrimitive(payload?.client?.nome) ||
     "";
 
+  // transaction id: pode estar em payload.transaction ou payload.transaction.id/code
   const transactionId =
-    unwrapPrimitive(payload?.transaction_id) ||
-    unwrapPrimitive(payload?.transactionId) ||
+    unwrapPrimitive(payload?.transaction) ||
     unwrapPrimitive(payload?.transaction?.id) ||
-    unwrapPrimitive(payload?.data?.transaction_id) ||
-    unwrapPrimitive(payload?.data?.transactionId) ||
-    unwrapPrimitive(payload?.data?.transaction?.id) ||
+    unwrapPrimitive(payload?.transaction?.code) ||
+    unwrapPrimitive(payload?.transaction?.transactionId) ||
     "";
 
+  // plano/oferta: offerCode é chave real no seu log
   const plan =
-    unwrapPrimitive(payload?.plan) ||
-    unwrapPrimitive(payload?.offer) ||
-    unwrapPrimitive(payload?.data?.plan) ||
-    unwrapPrimitive(payload?.data?.offer) ||
+    unwrapPrimitive(payload?.offerCode) ||
+    unwrapPrimitive(payload?.subscription?.plan) ||
+    unwrapPrimitive(payload?.subscription?.planCode) ||
     "";
 
+  // valor: muitas plataformas colocam em orderItems
+  // vamos tentar: subscription.amount, transaction.amount, orderItems[0].price/amount
   const value =
-    payload?.amount ??
-    payload?.value ??
-    payload?.data?.amount ??
-    payload?.data?.value ??
+    payload?.subscription?.amount ??
+    payload?.subscription?.value ??
+    payload?.transaction?.amount ??
+    payload?.transaction?.value ??
+    payload?.orderItems?.[0]?.amount ??
+    payload?.orderItems?.[0]?.value ??
+    payload?.orderItems?.[0]?.price ??
     null;
 
   return {
@@ -188,22 +225,10 @@ function extractBuyer(payload: any) {
   };
 }
 
-function printPayloadSample(payload: any) {
-  const safe = safeClone(payload);
-  console.log("[NEXANO_WEBHOOK] payload_sample:", JSON.stringify(safe).slice(0, 6000));
-}
-
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  // Método
   if ((req.method || "").toUpperCase() !== "POST") {
     res.setHeader("Allow", "POST");
     return json(res, 405, { ok: false, error: "Method Not Allowed" });
-  }
-
-  // Token
-  const tokenCheck = validateToken(req);
-  if (!tokenCheck.ok) {
-    return json(res, 401, { ok: false, error: "Unauthorized (invalid webhook token)" });
   }
 
   // Body
@@ -216,28 +241,40 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   if (WEBHOOK_DEBUG) printPayloadSample(payload);
 
-  // Extração
+  // Token (agora pode vir em header OU body.token)
+  const tokenCheck = validateToken(req, payload);
+  if (!tokenCheck.ok) {
+    return json(res, 401, { ok: false, error: "Unauthorized (invalid webhook token)" });
+  }
+
+  const eventType = unwrapPrimitive(payload?.event);
   const buyer = extractBuyer(payload);
 
+  console.log("[NEXANO_WEBHOOK] eventType:", eventType || "unknown");
+  console.log("[NEXANO_WEBHOOK] keys:", Object.keys(payload || {}));
   console.log("[NEXANO_WEBHOOK] extracted:", {
     email: buyer.email ? maskEmail(buyer.email) : "",
-    document: buyer.document ? maskDoc(buyer.document) : "",
+    hasDocument: !!buyer.document,
     transactionId: buyer.transactionId,
     plan: buyer.plan,
+    value: buyer.value,
+    token_enforced: tokenCheck.enforced,
   });
 
   if (!buyer.email || !buyer.document) {
-    // imprime amostra sempre que falhar, para mapear
+    // sempre imprime amostra quando falhar para mapear 100%
     printPayloadSample(payload);
+
     return json(res, 400, {
       ok: false,
       error: "Missing required buyer data (email/document)",
       received: {
+        eventType: eventType || "",
         email: buyer.email || "",
         document_present: !!buyer.document,
         transactionId: buyer.transactionId || "",
       },
-      hint: "Veja o log [NEXANO_WEBHOOK] payload_sample e me envie aqui.",
+      hint: "Envie o payload_sample do log (ou confirme os campos dentro de payload.client).",
     });
   }
 
@@ -269,7 +306,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     if (userErr) throw userErr;
 
     if (existingUser) {
-      // registra pagamento se tiver transactionId
       if (buyer.transactionId) {
         await supabase.from("pagamentos").insert({
           tenant_id: existingUser.tenant_id,
@@ -283,29 +319,32 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return json(res, 200, { ok: true, status: "user_exists" });
     }
 
-    // 3) Criar tenant (slug simples por enquanto)
+    // 3) Criar tenant (slug simples + sufixo para evitar colisão)
     const tenantName = buyer.name || buyer.email.split("@")[0];
+    const slugBase = tenantName
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)+/g, "")
+      .slice(0, 50);
+
+    const slug = `${slugBase || "corretor"}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const { data: tenant, error: tenantErr } = await supabase
       .from("tenants")
       .insert({
         nome_empresa: tenantName,
-        slug: (tenantName || "corretor")
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)+/g, "")
-            .slice(0, 60) + "-" + Math.floor(1000 + Math.random() * 9000), // se sua tabela exigir slug unique, me diga que eu ajusto para gerar slug
+        slug,
         plano: buyer.plan || null,
         status: "ativo",
       })
-      .select("id")
+      .select("id, slug")
       .single();
 
     if (tenantErr) throw tenantErr;
 
-    // 4) Criar usuário com senha temporária hash
+    // 4) Criar usuário com senha temporária hash (CPF/CNPJ)
     const passwordHash = await bcrypt.hash(buyer.document, 10);
 
     const { data: user, error: insUserErr } = await supabase
@@ -335,9 +374,13 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       if (payInsErr) throw payInsErr;
     }
 
-    return json(res, 201, { ok: true, status: "created", tenant_id: tenant.id, user_id: user.id });
+    return json(res, 201, { ok: true, status: "created", tenant_id: tenant.id, user_id: user.id, slug: tenant.slug });
   } catch (err: any) {
     console.error("[NEXANO_WEBHOOK] error:", err?.message || err);
-    return json(res, 500, { ok: false, error: "Internal Server Error", detail: err?.message || "unknown_error" });
+    return json(res, 500, {
+      ok: false,
+      error: "Internal Server Error",
+      detail: err?.message || "unknown_error",
+    });
   }
 }
