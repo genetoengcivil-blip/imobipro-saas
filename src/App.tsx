@@ -23,15 +23,28 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const PublicOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useGlobal();
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/app" replace />;
   return <>{children}</>;
+};
+
+// "/" vira landing pública; se tiver logado, manda direto pro app
+const HomeGate: React.FC = () => {
+  const { user } = useGlobal();
+  if (user) return <Navigate to="/app" replace />;
+  return <SitePage />;
 };
 
 const AppRoutes = () => (
   <Routes>
     <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
+
+    {/* Public landing */}
+    <Route path="/" element={<HomeGate />} />
+    {/* Mantém /site funcionando (opcional) */}
     <Route path="/site" element={<SitePage />} />
-    <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+
+    {/* Protected app */}
+    <Route path="/app" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
       <Route index element={<DashboardPage />} />
       <Route path="leads" element={<LeadsListPage />} />
       <Route path="leads/new" element={<LeadFormPage />} />
